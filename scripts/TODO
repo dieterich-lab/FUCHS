@@ -1,0 +1,10 @@
+
+## TODO 
+ 1. bedfile without exon number, permitted?
+ 2. one transcript per gene, choose best-fitting exon-structure
+ 3. identify AS
+ 4. output list of potentially false positive circles
+ 
+ 5. Parallelize
+ 6. Make it a real package
+
