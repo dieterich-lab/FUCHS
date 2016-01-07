@@ -1,7 +1,7 @@
 
 ## TODO 
  1. bedfile without exon number, permitted?
- 2. one transcript per gene, choose best-fitting exon-structure
+ 2. one transcript per gene, choose best-fitting exon-structure seems to work more or less
  3. identify AS
  4. output list of potentially false positive circles
  

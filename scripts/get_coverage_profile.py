@@ -31,10 +31,7 @@ split_character = args.split_character
 def circle_exon_count(bamfile2, bedfile, exon_index, split_character): # does what I think it does, adjust to collapse different transcripts from the same gene, choose transcript describing the circle best
     '''
     '''
-    print('before loading bam')
-    print(bamfile2)
     x = pybedtools.example_bedtool(bamfile2)
-    print('bam loaded')
     b = pybedtools.example_bedtool(bedfile)
     y = x.intersect(b, bed = True, wo = True)
     transcripts = {}
@@ -59,21 +56,22 @@ def circle_exon_count(bamfile2, bedfile, exon_index, split_character): # does wh
 	transcripts[transcript_id][exon]['strand_read'] += [strand_read]
     return(transcripts, found_features)
 
-def write_exon_count(outfile, exon_count, sample, circle_id): #append to existing exon_count file for the sample
+def write_exon_count(outfile, exon_count, sample, circle_id, transcript): #append to existing exon_count file for the sample
     '''
     '''
     out = open(outfile, 'a')
     # sample\tcircle_id\ttranscript_id\texon_id\tchr\tstart\tend\tstrand\texon_length\tunique_reads\tfragments\tnumber+\tnumber-\n
     # sort exon ids per transcript..and then iterate from min to max, if one exon isn't in it, fill with 0's, identify potentially skipped exons
-    for transcript in exon_count:
-	for exon in range(min(exon_count[transcript]), (max(exon_count[transcript])+1)):
-	    if exon in exon_count[transcript]:
-		num_plus = exon_count[transcript][exon]['strand_read'].count('+')
-		num_minus = exon_count[transcript][exon]['strand_read'].count('-')
-		unique_reads = set([w.split('/')[0] for w in exon_count[transcript][exon]['reads']])
-		out.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %(sample, circle_id, transcript, exon, exon_count[transcript][exon]['chromosome'], exon_count[transcript][exon]['start'], exon_count[transcript][exon]['end'], exon_count[transcript][exon]['strand_feature'], exon_count[transcript][exon]['length'], len(unique_reads), len(exon_count[transcript][exon]['reads']), num_plus, num_minus))
-	    else:
-		out.write('%s\t%s\t%s\t%s\t0\t0\t0\t0\t0\t0\t0\t0\t0\n' %(sample, circle_id, transcript, exon))
+    for t in exon_count:
+	if t == transcript:
+	    for exon in range(min(exon_count[transcript]), (max(exon_count[transcript])+1)):
+		if exon in exon_count[transcript]:
+		    num_plus = exon_count[transcript][exon]['strand_read'].count('+')
+		    num_minus = exon_count[transcript][exon]['strand_read'].count('-')
+		    unique_reads = set([w.split('/')[0] for w in exon_count[transcript][exon]['reads']])
+		    out.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %(sample, circle_id, transcript, ','.join(exon_count.keys()), exon, exon_count[transcript][exon]['chromosome'], exon_count[transcript][exon]['start'], exon_count[transcript][exon]['end'], exon_count[transcript][exon]['strand_feature'], exon_count[transcript][exon]['length'], len(unique_reads), len(exon_count[transcript][exon]['reads']), num_plus, num_minus))
+		else:
+		    out.write('%s\t%s\t%s\t%s\t%s\t0\t0\t0\t0\t0\t0\t0\t0\t0\n' %(sample, circle_id, transcript, ','.join(exon_count.keys()), exon))
     return
 
 
@@ -85,6 +83,21 @@ def filter_features(bed_features, feature_names):
 	if interval[3] in feature_names:
 	    intervals += [interval]
     return(intervals)
+
+def choose_transcript(exon_counts):
+    '''
+    '''
+    if len(exon_counts) > 0:
+	transcript = exon_counts.keys()[0]
+	for t in exon_counts:
+	    if len(exon_counts[t]) > len(exon_counts[transcript]):
+		transcript = t
+	    elif 'NR' in transcript and 'NM' in t:
+		transcript = t
+    else:
+	transcript = ''
+    return(transcript)
+
 
 def circle_coverage_profile(bamfile, bedfile, exon_ind, split_character):
     '''
@@ -103,22 +116,23 @@ def circle_coverage_profile(bamfile, bedfile, exon_ind, split_character):
 	transcriptwise_coverage[transcript][exon]['relative_positions'] += [position[6]]
     return(transcriptwise_coverage)
 
-def write_coverage_profile(inputfolder, coverage_profile, sample, circle_id):
+def write_coverage_profile(inputfolder, coverage_profile, sample, circle_id, transcript):
     '''
     '''
-    for transcript in coverage_profile:
-	out = open('%s/%s.coverage_profiles/%s.%s.txt' %(inputfolder, sample, circle_id, transcript), 'w')
-	out.write('exon\trelative_pos_in_circle\trelative_pos_in_exon\tcoverage\n')
-	pos_in_circle = 1
-	for exon in range(min(coverage_profile[transcript]), (max(coverage_profile[transcript])+1)):
-	    if exon in coverage_profile[transcript]:
-		for i, position in enumerate(coverage_profile[transcript][exon]['relative_positions']):
-		    out.write('%s\t%s\t%s\t%s\n' %(exon, pos_in_circle, position, coverage_profile[transcript][exon]['position_coverage'][i]))
-		    pos_in_circle += 1
-	    else:
-		for i, position in enumerate(range(0,50)):
-		    out.write('%s\t%s\t%s\t0\n' %(exon, pos_in_circle, position))
-		    pos_in_circle += 1
+    for t in coverage_profile:
+	if t == transcript:
+	    out = open('%s/%s.coverage_profiles/%s.%s.txt' %(inputfolder, sample, circle_id, transcript), 'w')
+	    out.write('exon\trelative_pos_in_circle\trelative_pos_in_exon\tcoverage\n')
+	    pos_in_circle = 1
+	    for exon in range(min(coverage_profile[transcript]), (max(coverage_profile[transcript])+1)):
+		if exon in coverage_profile[transcript]:
+		    for i, position in enumerate(coverage_profile[transcript][exon]['relative_positions']):
+			out.write('%s\t%s\t%s\t%s\n' %(exon, pos_in_circle, position, coverage_profile[transcript][exon]['position_coverage'][i]))
+			pos_in_circle += 1
+		else:
+		    for i, position in enumerate(range(0,50)):
+			out.write('%s\t%s\t%s\t0\n' %(exon, pos_in_circle, position))
+			pos_in_circle += 1
     out.close()
     return
 
@@ -129,7 +143,7 @@ def write_coverage_profile(inputfolder, coverage_profile, sample, circle_id):
 # initializing the result table file
 exon_count_file = '%s/%s.exon_counts.txt' %(inputfolder, sample)
 exon_counts_out = open(exon_count_file, 'w')
-exon_counts_out.write('sample\tcircle_id\ttranscript_id\texon_id\tchr\tstart\tend\tstrand\texon_length\tunique_reads\tfragments\tnumber+\tnumber-\n')
+exon_counts_out.write('sample\tcircle_id\ttranscript_id\tother_ids\texon_id\tchr\tstart\tend\tstrand\texon_length\tunique_reads\tfragments\tnumber+\tnumber-\n')
 exon_counts_out.close()
 
 # all circle files in a given folder
@@ -148,18 +162,20 @@ for f in files:
 	# extract circle id from filename, works for files generated by extract_reads.py, consider making this more flexible
 	circle_id = '%s_%s_%s' %(f.split('_')[0], f.split('_')[1], f.split('_')[2])
 	bamfile2 = '%s/%s/%s' %(inputfolder, sample, f)
-	print(bamfile2)
 	# open bed feature file
 	b = pybedtools.example_bedtool(bedfile)
 	# get read counts for each exon in circle
 	exon_counts, found_features = circle_exon_count(bamfile2, bedfile, exon_index, split_character)
+	# choose best fitting transcript
+	print(exon_counts.keys())
+	transcript_id = choose_transcript(exon_counts)
 	# add circle to result table
-	write_exon_count(exon_count_file, exon_counts, sample, circle_id)
+	write_exon_count(exon_count_file, exon_counts, sample, circle_id, transcript_id)
 	filtered_features = filter_features(b, found_features)
 	print('.')
 	if len(filtered_features) > 0:
 	    coverage_track = circle_coverage_profile(bamfile2, filtered_features, exon_index, split_character)
-	    write_coverage_profile(inputfolder, coverage_track, sample, circle_id)
+	    write_coverage_profile(inputfolder, coverage_track, sample, circle_id, transcript_id)
 
 
 ## make pictures using rscript
@@ -171,8 +187,11 @@ for f in files:
 
 
 #x = pybedtools.example_bedtool(bamfile)
-#b = pybedtools.example_bedtool(bedfile)
-#exon_counts, found_features = circle_exon_count(bamfile, bedfile, 3)
+bedfile = '/home/fmetge/Documents/work/Annotations/hg38/hg38.RefSeq.exons.bed'
+bamfile = '/home/fmetge/Documents/work/circRNA/FUCHS/testdata/output/test_20160106/12_1236769_1290012_12reads.sorted.bam'
+b = pybedtools.example_bedtool(bedfile)
+exon_counts, found_features = circle_exon_count(bamfile, bedfile, 3, '_')
+
 #filtered_features = filter_features(b, found_features)
 ##y = x.coverage(filtered_features, d = True)
 

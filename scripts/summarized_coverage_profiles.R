@@ -1,5 +1,6 @@
 # script to assign relative position to coverage profiles of circles
 
+# include checks if clusters are empty, it should not just break but just omit the plots, make number of centers flexible
 
 options(echo=TRUE) # if you want see commands in output file
 args <- commandArgs(trailingOnly = TRUE)
@@ -50,31 +51,27 @@ library(Hmisc)
 library(gplots)
 
 # good clustering
-kk = Kmeans(summary_table[,-c(1,2)], centers = 8, method = 'correlation', iter.max = 50, nstart = 100)
+kk = Kmeans(summary_table[,-c(1,2)], centers = 4, method = 'correlation', iter.max = 50, nstart = 100)
 
-par(mfrow = c(3,3))
 pdf(paste(folder,'coverage.clusters.all_circles.pdf', sep = '/'))
-for(i in 1:8) plot(kk[[2]][i,], main = paste('Cluster Size: ', kk$size[i], sep = '') , type = 'l', lwd = 5, col = 'dodgerblue', ylab = 'avg. coverage', xlab = 'relative position', cex.axis = 1.7, cex.lab = 1.7, cex.main = 2 )
+for(i in 1:4) plot(kk[[2]][i,], main = paste('Cluster Size: ', kk$size[i], sep = '') , type = 'l', lwd = 5, col = 'dodgerblue', ylab = 'avg. coverage', xlab = 'relative position', cex.axis = 1.7, cex.lab = 1.7, cex.main = 2 )
 dev.off()
 # good clustering
-kk.long = Kmeans(summary_table_long_circle[,-c(1,2)], centers = 5, method = 'correlation', iter.max = 50, nstart = 100)
-# par(mfrow = c(3,4))
+kk.long = Kmeans(summary_table_long_circle[,-c(1,2)], centers = 2, method = 'correlation', iter.max = 50, nstart = 100)
 pdf(paste(folder,'coverage.clusters.long_circles.pdf', sep = '/'))
-for(i in 1:5) plot(kk.long[[2]][i,], main = kk.long$size[i] , type = 'l', lwd = 5, col = 'dodgerblue', ylab = 'avg. coverage', xlab = 'relative position', cex.axis = 1.7, cex.lab = 1.7, cex.main = 2 )
+for(i in 1:2) plot(kk.long[[2]][i,], main = kk.long$size[i] , type = 'l', lwd = 5, col = 'dodgerblue', ylab = 'avg. coverage', xlab = 'relative position', cex.axis = 1.7, cex.lab = 1.7, cex.main = 2 )
 dev.off()
 
 # fine
-kk.short = Kmeans(summary_table_short_circle[,-c(1,2)], centers = 3, method = 'correlation', iter.max = 50, nstart = 50)
-# par(mfrow = c(3,4))
+kk.short = Kmeans(summary_table_short_circle[,-c(1,2)], centers = 2, method = 'correlation', iter.max = 50, nstart = 50)
 pdf(paste(folder,'coverage.clusters.short_circles.pdf', sep = '/'))
-for(i in 1:3) plot(kk.short[[2]][i,], main = kk.short$size[i] , type = 'l', lwd = 5, col = 'dodgerblue', ylab = 'avg. coverage', xlab = 'relative position', cex.axis = 1.7, cex.lab = 1.7, cex.main = 2 )
+for(i in 1:2) plot(kk.short[[2]][i,], main = kk.short$size[i] , type = 'l', lwd = 5, col = 'dodgerblue', ylab = 'avg. coverage', xlab = 'relative position', cex.axis = 1.7, cex.lab = 1.7, cex.main = 2 )
 dev.off()
 
 # ok
-kk.medium = Kmeans(summary_table_medium_circle[,-c(1,2)], centers = 5, method = 'correlation', iter.max = 50, nstart = 100)
-# par(mfrow = c(3,4))
+kk.medium = Kmeans(summary_table_medium_circle[,-c(1,2)], centers = 2, method = 'correlation', iter.max = 50, nstart = 100)
 pdf(paste(folder,'coverage.clusters.medium_circles.pdf', sep = '/'))
-for(i in 1:5) plot(kk.medium[[2]][i,], main = kk.medium$size[i] , type = 'l', lwd = 5, col = 'dodgerblue', ylab = 'avg. coverage', xlab = 'relative position', cex.axis = 1.7, cex.lab = 1.7, cex.main = 2 )
+for(i in 1:2) plot(kk.medium[[2]][i,], main = kk.medium$size[i] , type = 'l', lwd = 5, col = 'dodgerblue', ylab = 'avg. coverage', xlab = 'relative position', cex.axis = 1.7, cex.lab = 1.7, cex.main = 2 )
 dev.off()
 
 # write out cluster tables
