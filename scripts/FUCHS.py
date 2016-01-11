@@ -62,5 +62,5 @@ os.system('Rscript summarized_coverage_profiles.R %s/%s.coverage_profiles' %(out
 # Step6 : identify AS if present
 
 ## test environment
-# python FUCHS.py /home/fmetge/Documents/work/circRNA/FUCHS/testdata/github_testdata.circles.txt /home/fmetge/Documents/work/circRNA/FUCHS/testdata/github_testdata.bam /home/fmetge/Documents/work/Annotations/hg38/hg38.RefSeq.exons.bed /home/fmetge/Documents/work/circRNA/FUCHS/testdata/output/ github_testdata_20160107
+# python FUCHS.py /home/fmetge/Documents/work/circRNA/FUCHS/testdata/github_testdata.circles.txt /home/fmetge/Documents/work/circRNA/FUCHS/testdata/github_testdata.bam /home/fmetge/Documents/work/Annotations/hg38/hg38.RefSeq.exons.bed /home/fmetge/Documents/work/circRNA/FUCHS/testdata/output/ github_testdata_20160111
 

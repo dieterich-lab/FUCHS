@@ -1,7 +1,10 @@
 
 ## TODO 
  1. bedfile without exon number, permitted?
- 2. one transcript per gene, choose best-fitting exon-structure seems to work more or less
+ 1a. implement check points for wrong input or not enough input, dont have the pipeline just break (doesn't break, but checks for correct input are needed)
+ 1b. flexible number of clusters (done)
+ 1c. fix names in coverage profiles (done)
+ 2. one transcript per gene, choose best-fitting exon-structure seems to work more or less (done)
  3. identify AS
  4. output list of potentially false positive circles
  
