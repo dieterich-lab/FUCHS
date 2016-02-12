@@ -43,12 +43,13 @@ def read_circles(infile):
 	for each circle, extracts all reads_ids, but also accumulates all circular reads ids independent of circle id.
     '''
     circle_IDs = {}
-    reads = []
+    reads = {}
     I = open(infile)
     for circle in I:
 	if not circle.startswith('#'):
 	    circle_IDs[circle.split('\t')[0]] = circle.replace('\n', '').split('\t')[1].split(',') [:-1]
-	    reads += circle.replace('\n', '').split('\t')[1].split(',') [:-1]
+	    for lola in circle.replace('\n', '').split('\t')[1].split(',') [:-1]:
+		reads[lola] = 0
     I.close()
     return(circle_IDs, reads)
 
@@ -65,7 +66,7 @@ def load_alignment(infile, circle_reads, cutoff):
 	if i % 1000000 == 0:
 	    print('%s reads processed' %(i))
 	if read.qname in circle_reads and read.mapq > cutoff:
-	    #print(float(i)/21000000)
+	    #print(float(i)/17000000)
 	    if not read.qname in reads:
 		reads[read.qname] = {}
 	    reads[read.qname][i] = read

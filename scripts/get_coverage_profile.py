@@ -33,15 +33,15 @@ def circle_exon_count(bamfile2, bedfile, exon_index, split_character): # does wh
     '''
     x = pybedtools.example_bedtool(bamfile2)
     b = pybedtools.example_bedtool(bedfile)
-    y = x.intersect(b, bed = True, wo = True)
+    y = x.intersect(b, bed = True, wo = True, split = True)
     transcripts = {}
     found_features = []
     for hit in y:
 	found_features += [hit[15]]
 	transcript = hit[15]
-	start = int(hit[6])
-	end = int(hit[7])
-	length = int((hit[10]).replace(',', ''))
+	start = int(hit[13])
+	end = int(hit[14])
+	length = end - start
 	strand_read = hit[5]
 	strand_feature = hit[17]
 	transcript_id = split_character.join(transcript.split(split_character)[0:2])
@@ -88,14 +88,24 @@ def choose_transcript(exon_counts):
     '''
     '''
     if len(exon_counts) > 0:
-	transcript = exon_counts.keys()[0]
-	for t in exon_counts:
-	    if len(exon_counts[t]) > len(exon_counts[transcript]):
+        transcript = exon_counts.keys()[0]
+        missing_exons_transcript = 100
+        for t in exon_counts:
+	    missing_exons = 0
+	    for e in range(min(exon_counts[t]), max(exon_counts[t])+1):
+		if not e in exon_counts[t]:
+		    missing_exons += 1
+            if len(exon_counts[t]) > len(exon_counts[transcript]):
+                transcript = t
+                missing_exons_transcript = missing_exons
+            elif missing_exons < missing_exons_transcript:
 		transcript = t
-	    elif 'NR' in transcript and 'NM' in t:
-		transcript = t
+		missing_exons_transcript = missing_exons
+            elif 'NR' in transcript and 'NM' in t:
+                transcript = t
+                missing_exons_transcript = missing_exons
     else:
-	transcript = ''
+        transcript = ''
     return(transcript)
 
 
@@ -103,7 +113,7 @@ def circle_coverage_profile(bamfile, bedfile, exon_ind, split_character):
     '''
     '''
     x = pybedtools.example_bedtool(bamfile)
-    y = x.coverage(bedfile, d = True)
+    y = x.coverage(bedfile, d = True, split = True)
     transcriptwise_coverage = {}
     for position in y:
 	transcript = split_character.join(position[3].split(split_character)[0:2])
@@ -187,10 +197,10 @@ for f in files:
 
 
 #x = pybedtools.example_bedtool(bamfile)
-bedfile = '/home/fmetge/Documents/work/Annotations/hg38/hg38.RefSeq.exons.bed'
-bamfile = '/home/fmetge/Documents/work/circRNA/FUCHS/testdata/output/test_20160106/12_1236769_1290012_12reads.sorted.bam'
-b = pybedtools.example_bedtool(bedfile)
-exon_counts, found_features = circle_exon_count(bamfile, bedfile, 3, '_')
+#bedfile = '/home/fmetge/Documents/work/Annotations/hg38/hg38.RefSeq.exons.bed'
+#bamfile = '/home/fmetge/Documents/work/circRNA/FUCHS/testdata/output/test_20160106/12_1236769_1290012_12reads.sorted.bam'
+#b = pybedtools.example_bedtool(bedfile)
+#exon_counts, found_features = circle_exon_count(bamfile, bedfile, 3, '_')
 
 #filtered_features = filter_features(b, found_features)
 ##y = x.coverage(filtered_features, d = True)

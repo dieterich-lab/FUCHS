@@ -79,18 +79,26 @@ choose_centers <- function(D){
     if (number_of_circles >= 10) centers <- 3
     if (number_of_circles >= 20) centers <- 4
     if (number_of_circles >= 100) centers <- round(number_of_circles/20)
+    if (centers >= 10) centers <- 10 
   return(centers)
 }
+
+
 
 # perhaps also define a function for makeing the clustering, plotting the clusters and writing the tables
 
 # cluster all circles 
 centers = choose_centers(summary_table)
+print(centers)
 if(centers > 1){
   kk = Kmeans(summary_table[,-c(1,2)], centers = centers, method = 'correlation', iter.max = 50, nstart = 100)
   
   pdf(paste(folder,'coverage.clusters.all_circles.pdf', sep = '/'))
-    for(i in 1:centers) plot(kk[[2]][i,], main = paste('Cluster Size: ', kk$size[i], sep = '') , type = 'l', lwd = 5, col = 'dodgerblue', ylab = 'avg. coverage', xlab = 'relative position', cex.axis = 1.7, cex.lab = 1.7, cex.main = 2 )
+    for(i in 1:centers) {
+      if(kk$size[i] > 0){
+	plot(kk[[2]][i,], main = paste('Cluster Size: ', kk$size[i], sep = '') , type = 'l', lwd = 5, col = 'dodgerblue', ylab = 'avg. coverage', xlab = 'relative position', cex.axis = 1.7, cex.lab = 1.7, cex.main = 2 )
+      }
+    }
   dev.off()
   circle_to_cluster_association <- data.frame(circle_id = summary_table[,1], length = summary_table[,2], cluster_id = kk$cluster)
   write.table(circle_to_cluster_association, paste(folder,'cluster_association.all_circles.tsv', sep = '/'), sep = '\t', row.names = F, quote = F)
@@ -102,11 +110,16 @@ if(centers > 1){
 
 # cluster short circles
 centers = choose_centers(summary_table_short_circle)
+print(centers)
 if(centers > 1){
-  kk.short = Kmeans(summary_table_short_circle[,-c(1,2)], centers = 2, method = 'correlation', iter.max = 50, nstart = 50)
+  kk.short = Kmeans(summary_table_short_circle[,-c(1,2)], centers = centers, method = 'correlation', iter.max = 50, nstart = 50)
   
   pdf(paste(folder,'coverage.clusters.short_circles.pdf', sep = '/'))
-    for(i in 1:2) plot(kk.short[[2]][i,], main = kk.short$size[i] , type = 'l', lwd = 5, col = 'dodgerblue', ylab = 'avg. coverage', xlab = 'relative position', cex.axis = 1.7, cex.lab = 1.7, cex.main = 2 )
+    for(i in 1:centers) {
+      if(kk.short$size[i] > 0){
+	plot(kk.short[[2]][i,], main = paste('Cluster Size: ', kk.short$size[i], sep = '') , type = 'l', lwd = 5, col = 'dodgerblue', ylab = 'avg. coverage', xlab = 'relative position', cex.axis = 1.7, cex.lab = 1.7, cex.main = 2 )
+      }
+    }
   dev.off()
   circle_to_cluster_association.short <- data.frame(circle_id = summary_table_short_circle[,1], length = summary_table_short_circle[,2], cluster_id = kk.short$cluster)
   write.table(circle_to_cluster_association.short, paste(folder,'cluster_association.short_circles.tsv', sep = '/'), sep = '\t', row.names = F, quote = F)
@@ -118,10 +131,14 @@ if(centers > 1){
 # cluster medium circles
 centers = choose_centers(summary_table_medium_circle)
 if(centers > 1){
-  kk.medium = Kmeans(summary_table_medium_circle[,-c(1,2)], centers = 2, method = 'correlation', iter.max = 50, nstart = 100)
+  kk.medium = Kmeans(summary_table_medium_circle[,-c(1,2)], centers = centers, method = 'correlation', iter.max = 50, nstart = 100)
   
   pdf(paste(folder,'coverage.clusters.medium_circles.pdf', sep = '/'))
-    for(i in 1:2) plot(kk.medium[[2]][i,], main = kk.medium$size[i] , type = 'l', lwd = 5, col = 'dodgerblue', ylab = 'avg. coverage', xlab = 'relative position', cex.axis = 1.7, cex.lab = 1.7, cex.main = 2 )
+    for(i in 1:centers) {
+      if(kk.medium$size[i] >= 0){
+	plot(kk.medium[[2]][i,], main = paste('Cluster Size: ', kk.medium$size[i], sep = '') , type = 'l', lwd = 5, col = 'dodgerblue', ylab = 'avg. coverage', xlab = 'relative position', cex.axis = 1.7, cex.lab = 1.7, cex.main = 2 )
+      }
+    }
   dev.off()
 circle_to_cluster_association.medium <- data.frame(circle_id = summary_table_medium_circle[,1], length = summary_table_medium_circle[,2], cluster_id = kk.medium$cluster)
 write.table(circle_to_cluster_association.medium, paste(folder,'cluster_association.medium_circles.tsv', sep = '/'), sep = '\t', row.names = F, quote = F)
@@ -131,13 +148,20 @@ write.table(kk.medium[[2]], paste(folder,'cluster_means.medium_circles.tsv', sep
 }
 
 
+
 # cluster long circles
 centers = choose_centers(summary_table_long_circle)
+print(centers)
 if(centers > 1){
-  kk.long = Kmeans(summary_table_long_circle[,-c(1,2)], centers = 2, method = 'correlation', iter.max = 50, nstart = 100)
+  kk.long = Kmeans(summary_table_long_circle[,-c(1,2)], centers = centers, method = 'correlation', iter.max = 50, nstart = 100)
   
   pdf(paste(folder,'coverage.clusters.long_circles.pdf', sep = '/'))
-    for(i in 1:2) plot(kk.long[[2]][i,], main = kk.long$size[i] , type = 'l', lwd = 5, col = 'dodgerblue', ylab = 'avg. coverage', xlab = 'relative position', cex.axis = 1.7, cex.lab = 1.7, cex.main = 2 )
+    for(i in 1:centers) {
+      	print(kk.long$size[i])
+	if(kk.long$size[i] > 0){
+	plot(kk.long[[2]][i,], main = paste('Cluster Size: ', kk.long$size[i], sep = '') , type = 'l', lwd = 5, col = 'dodgerblue', ylab = 'avg. coverage', xlab = 'relative position', cex.axis = 1.7, cex.lab = 1.7, cex.main = 2 )
+      }
+    }
   dev.off()
   circle_to_cluster_association.long <- data.frame(circle_id = summary_table_long_circle[,1], length = summary_table_long_circle[,2], cluster_id = kk.long$cluster)
   write.table(circle_to_cluster_association.long, paste(folder,'cluster_association.long_circles.tsv', sep = '/'), sep = '\t', row.names = F, quote = F)
@@ -145,3 +169,4 @@ if(centers > 1){
 } else {
   print('ERROR not enough long circles in table to perform a clustering')
 }
+
