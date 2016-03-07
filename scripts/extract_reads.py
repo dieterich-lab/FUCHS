@@ -23,6 +23,7 @@ parser.add_argument('sample', metavar = 'sample_name', help = 'sample_name to ti
 parser.add_argument('-r', dest = 'reads', default = 5, type = int, help = 'Circle has to have at least <r> reads to be analysed.')
 parser.add_argument('-q', dest = 'mapq', default = 3, type = int, help = 'MAPQ cutoff, only reads passing this threshold will be written to circle bamfile.')
 
+
 args = parser.parse_args()
 
 # parse arguments

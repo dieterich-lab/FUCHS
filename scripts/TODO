@@ -2,12 +2,27 @@
 ## TODO 
  1. bedfile without exon number, permitted?
  1a. implement check points for wrong input or not enough input, dont have the pipeline just break (doesn't break, but checks for correct input are needed)
- 1b. flexible number of clusters (done)
- 1c. fix names in coverage profiles (done)
- 2. one transcript per gene, choose best-fitting exon-structure seems to work more or less (done)
  3. identify AS
  4. output list of potentially false positive circles
  
  5. Parallelize
  6. Make it a real package
 
+ To work with DCC bam files from mates separate mapping needs to be merged first and index (solved..though make a nicer script)
+
+ identify types of multi circle transcripts
+ 
+ within one circle (same boundaries) find different structures, skipped exons based on spliced reads...how?
+ 
+ maybe include transcript_id gene name mapping within the scripts already
+ 
+#  srun python FUCHS.py -r 5 -q 5 /beegfs/group_dv/home/FMetge/projects/Franzi/circRNA/mousedata_fuchs/FUCHS/ALL_1746_C__mate1_STARmappingChimeric.reads.txt /beegfs/group_dv/home/FMetge/projects/Franzi/circRNA/mousedata_fuchs/FUCHS/ALL_1746_C_mates.bam /beegfs/group_dv/home/FMetge/genomes/mus_musculus/GRCm38_79/mm10.RefSeq.exons.bed /beegfs/group_dv/home/FMetge/projects/Franzi/circRNA/mousedata_fuchs/FUCHS/ young_cerebellum &
+
+
+ integrate all tables and make figures
+ 
+ PARALLELIZE
+ 
+ add step option to pipeline..optional steps and required steps
+ 
+ add the whole exonskipping, alternative splicing to pipeline

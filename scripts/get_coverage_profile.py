@@ -13,6 +13,7 @@ parser.add_argument('sample', metavar = 'sample_name', help = 'sample_name to ti
 # options
 parser.add_argument('-e', dest = 'exon_index', default = 3, type = int, help = 'field indicating the exon number after splitting feature name.')
 parser.add_argument('-s', dest = 'split_character', default = '_', help = 'feature name separator.')
+parser.add_argument('-p', dest = 'ref_platform', default = 'refseq', help = 'specifies the annotation platform which was used (refseq or ensembl)')
 
 args = parser.parse_args()
 
@@ -22,13 +23,14 @@ inputfolder = args.inputfolder
 sample = args.sample
 exon_index = args.exon_index
 split_character = args.split_character
+platform = args.ref_platform
 
 # include some checks to make sure input was provided correctly
 
 
 # define functions
 
-def circle_exon_count(bamfile2, bedfile, exon_index, split_character): # does what I think it does, adjust to collapse different transcripts from the same gene, choose transcript describing the circle best
+def circle_exon_count(bamfile2, bedfile, exon_index, split_character, platform): # does what I think it does, adjust to collapse different transcripts from the same gene, choose transcript describing the circle best
     '''
     '''
     x = pybedtools.example_bedtool(bamfile2)
@@ -44,7 +46,13 @@ def circle_exon_count(bamfile2, bedfile, exon_index, split_character): # does wh
 	length = end - start
 	strand_read = hit[5]
 	strand_feature = hit[17]
-	transcript_id = split_character.join(transcript.split(split_character)[0:2])
+	if platform == 'refseq':
+	    transcript_id = split_character.join(transcript.split(split_character)[0:2])
+	elif platform == 'ensembl':
+	    transcript_id = transcript.split(split_character)[0]
+	else:
+	    transcript_id = 'NA'
+	    print('you are using an unkown annotation platform, please use refseq or ensembl')
 	exon = int(transcript.split(split_character)[exon_index])
 	read = hit[3]
 	chromosome = hit[0]
@@ -109,14 +117,20 @@ def choose_transcript(exon_counts):
     return(transcript)
 
 
-def circle_coverage_profile(bamfile, bedfile, exon_ind, split_character):
+def circle_coverage_profile(bamfile, bedfile, exon_ind, split_character, platform):
     '''
     '''
     x = pybedtools.example_bedtool(bamfile)
     y = x.coverage(bedfile, d = True, split = True)
     transcriptwise_coverage = {}
     for position in y:
-	transcript = split_character.join(position[3].split(split_character)[0:2])
+	if platform == 'refseq':
+	    transcript = split_character.join(position[3].split(split_character)[0:2])
+	elif platform == 'ensembl':
+	    transcript = position[3].split(split_character)[0]
+	else:
+	    transcript = 'NA'
+	    print('you are using an unknown annotation platform, please use refseq or ensembl like formats')
 	exon = int(position[3].split(split_character)[exon_ind])
 	if not transcript in transcriptwise_coverage:
 	    transcriptwise_coverage[transcript] = {}
@@ -175,7 +189,7 @@ for f in files:
 	# open bed feature file
 	b = pybedtools.example_bedtool(bedfile)
 	# get read counts for each exon in circle
-	exon_counts, found_features = circle_exon_count(bamfile2, bedfile, exon_index, split_character)
+	exon_counts, found_features = circle_exon_count(bamfile2, bedfile, exon_index, split_character, platform)
 	# choose best fitting transcript
 	print(exon_counts.keys())
 	transcript_id = choose_transcript(exon_counts)
@@ -184,7 +198,7 @@ for f in files:
 	filtered_features = filter_features(b, found_features)
 	print('.')
 	if len(filtered_features) > 0:
-	    coverage_track = circle_coverage_profile(bamfile2, filtered_features, exon_index, split_character)
+	    coverage_track = circle_coverage_profile(bamfile2, filtered_features, exon_index, split_character, platform)
 	    write_coverage_profile(inputfolder, coverage_track, sample, circle_id, transcript_id)
 
 
