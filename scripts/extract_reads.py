@@ -97,16 +97,20 @@ circle_info, circle_reads = read_circles(circles)
 print('DONE reading circles, found %s circles' %(len(circle_info)))
 reads = load_alignment(bamfile, circle_reads, mapq_cutoff)
 print('DONE extracting circular reads')
-os.mkdir('%s/%s' %(outfolder, sample))
+folders = os.listdir(outfolder)
+if not sample in folders:
+    os.mkdir('%s/%s' %(outfolder, sample))
+
 write_circle_bam(reads, circle_info, cutoff, bamfile, '%s/%s' %(outfolder, sample))
 print('DONE writing circle bam files\n')
 files = os.listdir('%s/%s' %(outfolder, sample))
 print('%s circles passed your thresholds of at least %s reads with at least a mapq of %s\n\n' %(len(files), cutoff, mapq_cutoff))
 
 for f in files:
-    pysam.sort('%s/%s/%s' %(outfolder, sample, f), '%s/%s/%s' %(outfolder, sample, f.replace('.bam', '.sorted')))
-    pysam.index('%s/%s/%s.bam' %(outfolder, sample, f.replace('.bam', '.sorted')))
-    os.system('rm %s/%s/%s' %(outfolder, sample, f))
+    if f.split('.')[-1] == 'bam':
+	pysam.sort('%s/%s/%s' %(outfolder, sample, f), '%s/%s/%s' %(outfolder, sample, f.replace('.bam', '.sorted')))
+	pysam.index('%s/%s/%s.bam' %(outfolder, sample, f.replace('.bam', '.sorted')))
+	os.system('rm %s/%s/%s' %(outfolder, sample, f))
 
 
 

@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser(description='Detect genes with different forms 
 parser.add_argument('folder', metavar = 'PATH', help = 'PATH to folder containing circle bam files' )
 parser.add_argument('bedfile', metavar = 'exons.bed', help = 'exon annotation file' )
 parser.add_argument('outfile', metavar = 'outfile', help = 'File to write genes giving rise to alternatively spliced circles to')
-# add platform option
+parser.add_argument('-p', dest = 'ref_platform', default = 'refseq', help = 'specifies the annotation platform which was used (refseq or ensembl)')
 # add temp folder option
 
 args = parser.parse_args()
@@ -20,7 +20,7 @@ args = parser.parse_args()
 folder = args.folder
 outfile = args.outfile
 bedfile = args.bedfile
-
+platform = args.ref_platform
 
 # define functions
 def load_bamfile(bamfile):
@@ -68,7 +68,7 @@ def intersect_introns_with_bedfile(bedfile, reads, coordinates):
 		    if not (skipped[0], int(skipped[1]), int(skipped[2])) in skipped_exons:
 			skipped_exons[(skipped[0], int(skipped[1]), int(skipped[2]))] = {'reads' : [], 'intron': [], 'name': skipped[3] }
 		    skipped_exons[(skipped[0], int(skipped[1]), int(skipped[2]))]['reads'] += [lola] 
-		    skipped_exons[(skipped[0], int(skipped[1]), int(skipped[2]))]['intron'] += ['%s:%s-%s' %(reads[lola][forrest]['reference'], start, ends[i])]
+		    skipped_exons[(skipped[0], int(skipped[1]), int(skipped[2]))]['intron'] += [(reads[lola][forrest]['reference'], start, ends[i])]
     return(skipped_exons)
 
 def identify_skipped_exons(bamfile, skipped_exons):
@@ -83,12 +83,28 @@ def identify_skipped_exons(bamfile, skipped_exons):
 	skipped_exons[lola]['exon_readcount'] = len(exon_readcount)
     return(skipped_exons)
 
-def write_exon_skipping(skipped, outfile, circle_id):
+def write_exon_skipping(skipped, outfile, circle_id, platform):
     O = open(outfile, 'a')
     for exon in skipped:
 	if not len(set(skipped[exon]['reads'])) == skipped[exon]['exon_readcount']:
-	    O.write('%s_%s_%s\t%s\t%s:%s-%s\t%s\t%s\t%s\t%s\n' %(circle_id[0], circle_id[1], circle_id[2], skipped[exon]['name'].split('_')[0], exon[0], exon[1], exon[2], ','.join(set(skipped[exon]['intron'])),','.join(set(skipped[exon]['reads'])), len(set(skipped[exon]['reads'])), skipped[exon]['exon_readcount']))
+	    if platform == 'refseq':
+		name = '_'.join(skipped[exon]['name'].split('_')[0:2])
+	    else:
+		name = skipped[exon]['name'].split('_')[0]
+	    O.write('%s_%s_%s\t%s\t%s:%s-%s\t%s\t%s\t%s\t%s\n' %(circle_id[0], circle_id[1], circle_id[2], name, exon[0], exon[1], exon[2], set(skipped[exon]['intron']) ,','.join(set(skipped[exon]['reads'])), len(set(skipped[exon]['reads'])), skipped[exon]['exon_readcount']))
     O.close()    
+    return
+
+def write_bed12(skipped, outfile, circle_id, platform):
+    O = open(outfile, 'a')
+    for exon in skipped:
+	if not len(set(skipped[exon]['reads'])) == skipped[exon]['exon_readcount']:
+	    if platform == 'refseq':
+		name = '_'.join(skipped[exon]['name'].split('_')[0:2])
+	    else:
+		name = skipped[exon]['name'].split('_')[0]
+	    O.write('%s\t%s\t%s\t%s\t%s\t.\t%s\t%s\t255,0,0\t1\t%s\t%s\n' %(circle_id[0], circle_id[1], circle_id[2], name, (float(len(set(skipped[exon]['reads'])))/skipped[exon]['exon_readcount'])*100, skipped[exon]['intron'][0][1], skipped[exon]['intron'][0][2], (exon[2]-exon[1]), exon[1]))
+    O.close()
     return
 
 
@@ -97,6 +113,8 @@ def write_exon_skipping(skipped, outfile, circle_id):
 tempfile.tempdir = '/beegfs/group_dv/home/FMetge/tmp'
 
 files = os.listdir(folder)
+outfile_bed = outfile.replace('.txt', '.bed')
+
 
 O = open(outfile, 'w')
 O.write('circle_id\ttranscript_id\tskipped_exon\tintron\tread_names\tsplice_reads\texon_reads\n')
@@ -114,4 +132,6 @@ for f in files:
 	SKIPPED = intersect_introns_with_bedfile(bedfile, READS, circle_id)
 	if len(SKIPPED) > 0:
 	    SKIPPED = identify_skipped_exons(bamfile, SKIPPED)
-	    write_exon_skipping(SKIPPED, outfile, circle_id)
+	    write_bed12(SKIPPED, outfile_bed, circle_id, platform)
+	    write_exon_skipping(SKIPPED, outfile, circle_id, platform)
+

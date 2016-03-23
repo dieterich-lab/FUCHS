@@ -26,3 +26,14 @@
  add step option to pipeline..optional steps and required steps
  
  add the whole exonskipping, alternative splicing to pipeline
+ 
+ outfiles should be in Bed12 format
+ 
+ structure pipeline
+ 
+ circleAS present in linearAS? run stringtie
+ 
+ run on HEK293
+ 
+ summary picutres
+ 

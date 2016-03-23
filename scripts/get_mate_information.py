@@ -4,6 +4,7 @@ import pysam
 import os
 import argparse
 import pybedtools
+import tempfile
 
 parser = argparse.ArgumentParser(description='Extracts mate information and identify singe and double breakpoint fragments')
 
@@ -129,6 +130,9 @@ def write_results(results, outfile):
 # outfile = '/beegfs/group_dv/home/FMetge/projects/Franzi/circRNA/mousedata_fuchs/FUCHS/old_cerebellum_mate_status.txt'
 # bedfile = '/beegfs/group_dv/home/FMetge/genomes/mus_musculus/GRCm38_79/mm10.ensembl.exons.bed'
 # lola = '18_10004896_10016644_7reads.sorted.bam'
+
+tempfile.tempdir = '/beegfs/group_dv/home/FMetge/tmp'
+
 
 RESULTS = iterate_over_folder(bamfolder, bedfile, platform, split_character)
 write_results(RESULTS, outfile)
