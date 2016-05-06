@@ -54,7 +54,7 @@ print(skipped_steps)
 
 # Step 1: (optional) if DCC was used, extract circle read names from junction file 
 if not 'step1' in skipped_steps:
-    circles = junctionfile.replace('.out.junction', '.reads.txt')
+    circles = '%s.reads.txt' %(junctionfile)
     if not mates == 'none': 
 	os.system('python get_readnames_from_DCC.py -m %s %s %s' %(mates, circle_ids, junctionfile))
     else:
@@ -72,28 +72,25 @@ if not 'step3' in skipped_steps:
 if not 'step4' in skipped_steps:
     os.system('python detect_skipped_exons.py %s/%s %s %s/%s.skipped_exons.txt' %(outfolder, sample, bedfile, outfolder, sample))
 
-# Step5 : (optional) generate coverage profile for each circle (one transcript per gene, best if most fitting transcript)
+# Step5 : (optional) identify different circles within the same host gene
 if not 'step5' in skipped_steps:
-    os.system('python get_coverage_profile.py -e %s -s %s -p %s %s %s %s' %(exon_index, split_character, platform, bedfile, outfolder, sample))
+    os.system('python detect_splicing_variants.py -s %s -p %s %s %s %s/%s.alternative_splicing.txt' %(split_character, platform ,circles, bedfile, outfolder, sample))
 
-# Step6 : (optional, requires step5) identify different circles within the same host gene
+# Step6 : (optional) generate coverage profile for each circle (one transcript per gene, best if most fitting transcript)
 if not 'step6' in skipped_steps:
-    if not 'step5' in skipped_steps:
-	os.system('python detect_splicing_variants.py %s/%s.exon_counts.bed %s/%s.alternative_splicing.txt' %(outfolder, sample, outfolder, sample))
-    else:
-	print('You are trying to find isoforms without generating coverage profiles first, please run step 5')
+    os.system('python get_coverage_profile.py -e %s -s %s -p %s %s %s %s' %(exon_index, split_character, platform, bedfile, outfolder, sample))
 
 # Step7 : (optionl, reqiures step 5)
 if not 'step7' in skipped_steps:
-    if not 'step5' in skipped_steps:
+    if not 'step6' in skipped_steps:
 	os.system('Rscript summarized_coverage_profiles.R %s/%s.coverage_profiles' %(outfolder, sample))
     else:
 	print('You are trying cluster the coverage profiles without generating coverage profiles first, please run step 5')
 
 
-# Step8 : (optional, requires step5) pictures for all circles
+# Step8 : (optional, requires step6) pictures for all circles
 if not 'step8' in skipped_steps:
-    if not 'step5' in skipped_steps:
+    if not 'step6' in skipped_steps:
 	files = os.listdir('%s/%s.coverage_profiles' %(outfolder, sample))
 	folders = os.listdir(outfolder)
 	if not '%s.coverage_pictures' %(sample) in folders:

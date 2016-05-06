@@ -98,12 +98,15 @@ def write_exon_skipping(skipped, outfile, circle_id, platform):
 def write_bed12(skipped, outfile, circle_id, platform):
     O = open(outfile, 'a')
     for exon in skipped:
-	if not len(set(skipped[exon]['reads'])) == skipped[exon]['exon_readcount']:
+	if not len(set(skipped[exon]['reads'])) == skipped[exon]['exon_readcount'] and (circle_id[2] - circle_id[1] > 100) and (circle_id[2]  >= skipped[exon]['intron'][0][2]) and (circle_id[1] <= skipped[exon]['intron'][0][1] ):
 	    if platform == 'refseq':
 		name = '_'.join(skipped[exon]['name'].split('_')[0:2])
 	    else:
 		name = skipped[exon]['name'].split('_')[0]
-	    O.write('%s\t%s\t%s\t%s\t%s\t.\t%s\t%s\t255,0,0\t1\t%s\t%s\n' %(circle_id[0], circle_id[1], circle_id[2], name, (float(len(set(skipped[exon]['reads'])))/skipped[exon]['exon_readcount'])*100, skipped[exon]['intron'][0][1], skipped[exon]['intron'][0][2], (exon[2]-exon[1]), exon[1]))
+	    if circle_id[0].startswith('chr'):
+		O.write('%s\t%s\t%s\t%s\t%s\t.\t%s\t%s\t255,0,0\t3\t1,%s,1\t0,%s,%s\n' %(circle_id[0], circle_id[1], circle_id[2], name, (float(len(set(skipped[exon]['reads'])))/skipped[exon]['exon_readcount'])*100, skipped[exon]['intron'][0][1], skipped[exon]['intron'][0][2], (exon[2]-exon[1]), exon[1]-circle_id[1], circle_id[2]-circle_id[1]-1))
+	    else:
+		O.write('chr%s\t%s\t%s\t%s\t%s\t.\t%s\t%s\t255,0,0\t3\t1,%s,1\t0,%s,%s\n' %(circle_id[0], circle_id[1], circle_id[2], name, (float(len(set(skipped[exon]['reads'])))/skipped[exon]['exon_readcount'])*100, skipped[exon]['intron'][0][1], skipped[exon]['intron'][0][2], (exon[2]-exon[1]), exon[1]-circle_id[1], circle_id[2]-circle_id[1]-1))
     O.close()
     return
 
@@ -120,6 +123,9 @@ O = open(outfile, 'w')
 O.write('circle_id\ttranscript_id\tskipped_exon\tintron\tread_names\tsplice_reads\texon_reads\n')
 O.close()
 
+O = open(outfile_bed, 'w')
+O.write('# bed12 format\n')
+O.close()
 
 
 for f in files:

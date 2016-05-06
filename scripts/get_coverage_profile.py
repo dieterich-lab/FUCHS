@@ -161,11 +161,29 @@ def write_coverage_profile(inputfolder, coverage_profile, sample, circle_id, tra
     out.close()
     return
 
-def format_to_bed12(exon_count, transcript, circle_id, number_of_reads, outfile):
+
+def remove_exons_outside_circle(exon_count, transcript, circle_id):
+    exons = exon_count[transcript]
+    keys_to_delete = []
+    for exon in exons:
+	start_exon = int(exon_count[transcript][exon]['start'])
+	start_circle = int(circle_id.split('_')[-2])
+	end_circle = int(circle_id.split('_')[-1])
+	end_exon = int(exon_count[transcript][exon]['end'])
+	if not (start_circle <= start_exon + 10 and end_exon - 10 <= end_circle):
+	    keys_to_delete += [exon]
+    for exon in keys_to_delete:
+	del exon_count[transcript][exon]
+    return(exon_count)
+
+def format_to_bed12(exon_count, transcript, circle_id, number_of_reads, outfile): # correctly formatted now :)
     bed12 = {}
     for t in exon_count:
-	if t == transcript:
-	    bed12['01_chrom'] = circle_id.split('_')[0]
+	if t == transcript and len(exon_count[t]) > 0:
+	    if circle_id.split('_')[0].startswith('chr'):
+		bed12['01_chrom'] = circle_id.split('_')[0]
+	    else:
+		bed12['01_chrom'] = 'chr%s' %(circle_id.split('_')[0])
 	    bed12['02_start'] = circle_id.split('_')[1]
 	    bed12['03_end'] = circle_id.split('_')[2]
 	    bed12['04_name'] = t
@@ -180,7 +198,27 @@ def format_to_bed12(exon_count, transcript, circle_id, number_of_reads, outfile)
 	    for e in sorted(exon_count[t]):
 		bed12['06_strand'] = exon_count[t][e]['strand_feature']
 		bed12['11_block_sizes'] += ['%s' %(exon_count[t][e]['length']-1)]
-		bed12['12_block_starts'] += ['%s' %(exon_count[t][e]['start']+1)]
+		bed12['12_block_starts'] += ['%s' %(int((exon_count[t][e]['start']+1)) - int(circle_id.split('_')[1]))]
+	    print(bed12)
+	    # if the exon doesn't start where the circle starts (circle starts in intron)
+	    if bed12['12_block_starts'][0] > '0':
+		bed12['12_block_starts'] = ['0'] + bed12['12_block_starts']
+		bed12['11_block_sizes'] = ['1'] + bed12['11_block_sizes']
+		bed12['10_blockCount'] = '%s' %(int(bed12['10_blockCount']) + 1)
+	    # if the exon starts before the circle starts (circle starts in exon)
+	    if bed12['12_block_starts'][0] < '0':
+		bed12['11_block_sizes'][0] = '%s' %(int(bed12['11_block_sizes'][0]) + int(bed12['12_block_starts'][0]))
+		bed12['12_block_starts'][0] = '0'
+	    # if the last exon extends over the circle boundaries:
+	    if int(bed12['12_block_starts'][-1]) + int(bed12['02_start']) + int(bed12['11_block_sizes'][-1]) > int(bed12['03_end']):
+		actual_end = int(bed12['12_block_starts'][-1]) + int(bed12['02_start']) + int(bed12['11_block_sizes'][-1])
+		difference = actual_end - int(bed12['03_end'])
+		new_blocksize = int(bed12['11_block_sizes'][-1]) - difference
+		bed12['11_block_sizes'][-1] = '%s' %(new_blocksize)
+	    if int(bed12['12_block_starts'][-1]) + int(bed12['02_start']) + int(bed12['11_block_sizes'][-1]) < int(bed12['03_end']):
+		bed12['11_block_sizes'] += '1'
+		bed12['12_block_starts'] += ['%s' %(int(bed12['03_end']) - int(bed12['02_start']) - 1)]
+     		bed12['10_blockCount'] = '%s' %(int(bed12['10_blockCount']) + 1)
 	    bed12['12_block_starts'] = ','.join(bed12['12_block_starts'])
 	    bed12['11_block_sizes'] = ','.join(bed12['11_block_sizes'])
     Bed12 = []
@@ -189,7 +227,7 @@ def format_to_bed12(exon_count, transcript, circle_id, number_of_reads, outfile)
     o = open(outfile, 'a')
     o.write('%s\n' %('\t'.join(Bed12)))
     o.close()
-    return
+    return(bed12)
 
 # circle exon count over all bam files in sample folder, this could easily be parralellised
 
@@ -201,6 +239,10 @@ exon_count_file = '%s/%s.exon_counts.txt' %(inputfolder, sample)
 exon_counts_out = open(exon_count_file, 'w')
 exon_counts_out.write('sample\tcircle_id\ttranscript_id\tother_ids\texon_id\tchr\tstart\tend\tstrand\texon_length\tunique_reads\tfragments\tnumber+\tnumber-\n')
 exon_counts_out.close()
+
+o = open('%s/%s.exon_counts.bed' %(inputfolder, sample), 'w')
+o.write('# BED12\n')
+o.close()
 
 # all circle files in a given folder
 files = os.listdir('%s/%s' %(inputfolder, sample))
@@ -228,10 +270,11 @@ for f in files:
 	transcript_id = choose_transcript(exon_counts)
 	# add circle to result table
 	write_exon_count(exon_count_file, exon_counts, sample, circle_id, transcript_id)
+	exon_counts = remove_exons_outside_circle(exon_counts, transcript_id, circle_id)
 	format_to_bed12(exon_counts, transcript_id, circle_id, number_of_reads, '%s/%s.exon_counts.bed' %(inputfolder, sample))
 	filtered_features = filter_features(b, found_features)
 	print('.')
-	if len(filtered_features) > 0:
+	if len(filtered_features) > 0 :
 	    coverage_track = circle_coverage_profile(bamfile2, filtered_features, exon_index, split_character, platform)
 	    write_coverage_profile(inputfolder, coverage_track, sample, circle_id, transcript_id)
 

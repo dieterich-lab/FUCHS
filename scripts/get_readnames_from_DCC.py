@@ -70,4 +70,4 @@ if not mate2 == 'none':
     R = read_junction_file(mate2, R)
 
 R = filter_circles(C,R)
-write_circles(R, junctionreads_file.replace('.out.junction', '.reads.txt'))
+write_circles(R, '%s.reads.txt' %(junctionreads_file))
