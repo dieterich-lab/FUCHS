@@ -265,18 +265,20 @@ for f in files:
 	b = pybedtools.example_bedtool(bedfile)
 	# get read counts for each exon in circle
 	exon_counts, found_features = circle_exon_count(bamfile2, bedfile, exon_index, split_character, platform)
-	# choose best fitting transcript
-	print(exon_counts.keys())
-	transcript_id = choose_transcript(exon_counts)
-	# add circle to result table
-	write_exon_count(exon_count_file, exon_counts, sample, circle_id, transcript_id)
-	exon_counts = remove_exons_outside_circle(exon_counts, transcript_id, circle_id)
-	format_to_bed12(exon_counts, transcript_id, circle_id, number_of_reads, '%s/%s.exon_counts.bed' %(inputfolder, sample))
-	filtered_features = filter_features(b, found_features)
-	print('.')
-	if len(filtered_features) > 0 :
-	    coverage_track = circle_coverage_profile(bamfile2, filtered_features, exon_index, split_character, platform)
-	    write_coverage_profile(inputfolder, coverage_track, sample, circle_id, transcript_id)
+	if len(exon_counts) > 0:
+	    # choose best fitting transcript
+	    print(exon_counts.keys())
+	    transcript_id = choose_transcript(exon_counts)
+	    # add circle to result table
+	    write_exon_count(exon_count_file, exon_counts, sample, circle_id, transcript_id)
+	    print(f)
+	    exon_counts = remove_exons_outside_circle(exon_counts, transcript_id, circle_id)
+	    format_to_bed12(exon_counts, transcript_id, circle_id, number_of_reads, '%s/%s.exon_counts.bed' %(inputfolder, sample))
+	    filtered_features = filter_features(b, found_features)
+	    print('.')
+	    if len(filtered_features) > 0 :
+		coverage_track = circle_coverage_profile(bamfile2, filtered_features, exon_index, split_character, platform)
+		write_coverage_profile(inputfolder, coverage_track, sample, circle_id, transcript_id)
 
 
 ## make pictures using rscript
