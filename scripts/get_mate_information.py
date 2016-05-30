@@ -46,6 +46,7 @@ def get_reads_from_bamfile(bamfile, circle_coordinates):
 	    mates[name]['forward']['start'] += [end]
 	else:
 	    non_junction_fragments += [lola]
+    circle.close()
     return(mates, non_junction_fragments)
 
 def classify_reads(mates):
@@ -93,8 +94,8 @@ def iterate_over_folder(inputfolder, bedfile, platform, split_character):
     for lola in files:
 	if lola.split('.')[-1] == 'bam':
 	    print(lola)
-	    circle_coordinates = [lola.split('_')[0], int(lola.split('_')[1]), int(lola.split('_')[2])]
-	    num_reads = lola.split('.')[0].split('_')[3].replace('reads', '')
+	    circle_coordinates = ['_'.join(lola.split('_')[0:-3]), int(lola.split('_')[-3]), int(lola.split('_')[-2])]
+	    num_reads = int(lola.split('_')[-1].split('.')[0]. replace('reads', ''))
 	    MATES, FRAGMENTS = get_reads_from_bamfile('%s/%s' %(inputfolder, lola), circle_coordinates)
 	    MATES = classify_reads(MATES)
 	    if not bedfile == 'none':
@@ -126,16 +127,9 @@ def write_results(results, outfile):
     return
 
 # run script
-# bamfolder = '/beegfs/group_dv/home/FMetge/projects/Franzi/circRNA/mousedata_fuchs/FUCHS/old_cerebellum'
-# outfile = '/beegfs/group_dv/home/FMetge/projects/Franzi/circRNA/mousedata_fuchs/FUCHS/old_cerebellum_mate_status.txt'
-# bedfile = '/beegfs/group_dv/home/FMetge/genomes/mus_musculus/GRCm38_79/mm10.ensembl.exons.bed'
-# lola = '18_10004896_10016644_7reads.sorted.bam'
-
 tempfile.tempdir = '/beegfs/group_dv/home/FMetge/tmp'
-
 
 RESULTS = iterate_over_folder(bamfolder, bedfile, platform, split_character)
 write_results(RESULTS, outfile)
-
 
 

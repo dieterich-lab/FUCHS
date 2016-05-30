@@ -24,27 +24,26 @@ You can clone the scripts from git using git clone:
   
   $ cd FUCHS/scripts
   
-  $ python FUCHS.py [options] sample_circleIDs.txt sample.bam feature.bed folder sample_name
+  $ python FUCHS.py [options] <sample_circleIDs> <sample.bam> <feature.bed> <PATH/to/output/folder> <sample_name>
 
 ========
 Usage
 ========
-The detection of circRNAs from RNAseq data through DCC can be summarised by three steps:
+To characterize circRNAs from RNA-seq data you have to:
 
-1. Map RNAseq data from quality checked fastq files. For paired end data, it is recommended to map with two pairs jointly, and **also** separately. This is because STAR does not output reads or read pairs which have more than one chimeric junctions. 
+1. Map RNAseq data from quality checked fastq files with either STAR, BWA, TopHat-Fusion.
 
-2. Prepare files needed by DCC. In summary, only one file is mandatory: 'samplesheet', which specifies where your Chimeric.out.junction files are stored, with one sample per line. Three other files are recommended: 1). 'Repetitive_regions.gtf', a GTF format annotation of repetitive regions, which is used to filter out circRNA candidates from repetitive regions. 2). For paired end sequencing, 'mate1' and 'mate2', which specify where your Chimeric.out.junction files from mate separate mapping are.
+2. Detect circRNAs using DCC, CIRI, CIRCfinder or CIRCexplorer depending on the program you used for mapping.
 
-3. Run DCC. DCC can be run for different purpose with different modes. In summary, 1) Run DCC to detect circRNAs and host gene expression (use -D and -G option ) 2). Run DCC only to detect circRNAs (use -D option only). 
-
-.. 3) Run DCC to count host gene expression with a custom provided circRNA list in BED format (use -G option, provide custom circRNA with -C option). 
+3. Run FUCHS (right now only the combination STAR-DCC has been tested, the rest is under development.)
 
 ========================
 Step by step tutorial
 ========================
-In this tutorial, we use Westholm et al. 2014 data as an example. The data are paired end, stranded RiboMinus RNAseq data from Drosophila.melanogaster, consisting of samples of 3 developmental stages (1days, 4days and 20days) collected from heads. You can download the data as fastq files with NCBI SRA accession number: SRP001696. 
+In this tutorial I will be using HEK293 data (published with the paper?) and use STAR with DCC to detect circular RNAs
 
 1. Map RNA-seq data with STAR (Dobin et al., 2013). Note that --alignSJoverhangMin and --chimJunctionOverhangMin should use the same value, to make the circRNA expression and linear gene expression level comparable. 
+Note that STARlong is not mapping chimeric reads correctly. 
 
 * Do pairs joined mapping first. If your data are paired end, do additional mates separate mapping (not mandatory, but will increase the sensitivity of DCC detection, because it collect small circRNAs which appear with one chimeric junction point at each read mate). If the data is single end, only one mapping step is needed. In this case, we have PE sequencing data.
 
@@ -77,34 +76,27 @@ In this tutorial, we use Westholm et al. 2014 data as an example. The data are p
 
   Second (only if you have paired end sequencing data), "mate1" and "mate2" files. As with the "samplesheet" file, you specify where your mate1 and mate2 separately mapped chimeric.junction.out files are.
 
-  You can find a example of this files for Westholm et al. data at:
+  You can find a example of these files for HEK293 data at:
   
 .. code-block:: bash
 
-  $ <DCC directory>/DCC/data/samplesheet # Mates jointly mapped chimeric.junction.out files
-  $ <DCC directory>/DCC/data/mate1 # Mate1 independently mapped chimeric.junction.out files
-  $ <DCC directory>/DCC/data/mate1 # Mate2 independently mapped chimeric.junction.out files
+  $ <FUCHS directory>/testdata/dcc/samplesheet # Mates jointly mapped chimeric.junction.out files
+  $ <FUCHS directory>/testdata/dcc/mate1 # Mate1 independently mapped chimeric.junction.out files
+  $ <FUCHS directory>/testdata/dcc/mate1 # Mate2 independently mapped chimeric.junction.out files
 
 - After all the preparation steps, you can now run DCC for circRNA detection. 
 
 
 .. code-block:: bash
 
-  # Call DCC to detect circRNAs, using Westholm data as example.
+  # Call DCC to detect circRNAs, using HEK293 data as example.
   $ DCC @samplesheet -mt1 @mate1 -mt2 @mate2 -D -R [Repeats].gtf -an [Annotation].gtf -Pi -F -M -Nr 5 6 -fg -G -A [Reference].fa
-
-  # For single end, non-strand data:
-  $ DCC @samplesheet -D -R [Repeats].gtf -an [Annotation].gtf -F -M -Nr 5 6 -fg -G -A [Reference].fa
-
-  $ DCC @samplesheet -mt1 @mate1 -mt2 @mate2 -D -S -R [Repeats].gtf -an [Annotation].gtf -Pi -F -M -Nr 5 6 -fg
 
   # Details of parameters please refer to the help page of DCC:
   $ DCC -h
 
 By default, DCC assume the data are stranded, for non-stranded data, use -N flag.
 NOTE: -F flag is mandatory, if you want to filter on the results. All filtering steps are not mandatory, but strongly recommended.
-
-**Finished!!!**
 
 --------------------
 
@@ -120,58 +112,77 @@ The output of DCC include: CircRNACount, CircCoordinates, LinearCount and CircSk
 
 -----------------------------------
 
+3. Merge mate1.chimeric.sam and mate2.chimeric.sam files for FUCHS (This is not neccessary if circles were detected using BWA/CIRI)
+
+.. code-block:: bash
+
+  $ samtools view -Sb -o hek293.1 hek293.1/Chimeric.out.sam
+  $ samtools view -Sb -o hek293.2 hek293.2/Chimeric.out.sam
+  
+  $ samtools sort hek293.1 hek293.1.sorted
+  $ samtools sort hek293.2 hek293.2.sorted
+   
+  $ samtools index hek293.1.sorted.bam
+  $ samtools index hek293.2.sorted.bam
+   
+  $samtools merge hek293.sorted.bam hek293.1.sorted.bam hek293.2.sorted.bam
+   
+  $samtools index hek293.sorted.bam
+
+4. Run FUCHS.py to start the pipeline which will extract reads, check mate status, detect alternative splicing events, classify different isoforms, generate coverage profiles and cluster circRNAs based on coverage profiles
+
+.. code-block:: bash
+  $ python FUCHS.py -r 2 -q 2 -p refseq -e 3 -c CircRNACount -m hek293.mate1.Chimeric.out.junction.fixed -j hek293.mate2.Chimeric.out.junction.fixed mock hek293.sorted.bam hg38.refseq.bed FUCHS/ hek293
+  
+  # if you used BWA/CIRI you can skip -c, -m, and -j, specify to skip the first step -sS step1 and specify the circIDs file
+
+**Finished!!!**
 
 ========================================================================
-Test for host-independently regulated circRNAs with CircTest package
+INPUT
 ========================================================================
+**circIDs:** 
+.. code-block:: bash
+  $ 1:3740233|3746181	MISEQ:136:000000000-ACBC6:1:2107:10994:20458,MISEQ:136:000000000-ACBC6:1:1116:13529:8356
+  $ 1:8495063|8557523	MISEQ:136:000000000-ACBC6:1:2117:11302:22227,MISEQ:136:000000000-ACBC6:1:1111:4979:10994,MISEQ:136:000000000-ACBC6:1:2117:14163:16664,MISEQ:136:000000000-ACBC6:1:1103:13343:14303
+  $ 1:8495063|8614686	MISEQ:136:000000000-ACBC6:1:2118:9328:9926
 
-1) Install CircTest package as described: https://github.com/dieterich-lab/CircTest
+The first column contains the circle id formated as folllowed **chr:start|end**. The second column is a comma separated list of read names spanning the back-splice junction.
 
-2) Read and load DCC output into R
+**bamfile:** Alignment file produced by any mapper. This file must contain all chimerically mapped reads and may contain also linearly mapped reads.
 
-.. code-block:: R
+**bedfile:** 
+.. code-block:: bash
+  $ 1	67092175	67093604	NR_075077_exon_0_0_chr1_67092176_r	0	-
+  $ 1	67096251	67096321	NR_075077_exon_1_0_chr1_67096252_r	0	-
+  $ 1	67103237	67103382	NR_075077_exon_2_0_chr1_67103238_r	0	-
 
-  library(CircTest)
+Normal BED file in BED6 format. The name should contain a gene name or gene ID and the exon_number. You can specify how the name should be processed using -p (platform), -s (character used to separate name and exon number) and -e (exon_index). 
 
-  CircRNACount <- read.delim('CircRNACount',header=T)
-  LinearCount <- read.delim('LinearCount',header=T)
-  CircCoordinates <- read.delim('CircCoordinates',header=T)
+========================================================================
+OUTPUT
+========================================================================
+**hek293.alternative_splicing.txt:** 
+**hek293.exon_counts.bed:** 
+**hek293.exon_counts.txt:** 
+**hek293.mate_status.txt:** 
+**hek293.skipped_exons.bed:** 
+**hek293.skipped_exons.txt:** 
+--------------------
 
-  CircRNACount_filtered <- Circ.filter(circ = CircRNACount, linear = LinearCount, Nreplicates = 6, filter.sample = 6, filter.count = 5, percentage = 0.1)
-  CircCoordinates_filtered <- CircCoordinates[rownames(CircRNACount_filtered),]
-  LinearCount_filtered <- LinearCount[rownames(CircRNACount_filtered),]
+hek293:
+20_41533050_41551360_5reads.sorted.bam
+--------------------
 
-Alternatively, load the processed Westholm et al. data from CircTest package.
+hek293.coverage_pictures:
+20_41533050_41551360_NM_032221.png
+cluster_means_all_circles.png
+--------------------
 
-.. code-block:: R
-  
-  library(CircTest)
-  
-  data(Circ)
-  CircRNACount_filtered <- Circ
-  data(Coordinates)
-  CircCoordinates_filtered <- Coordinates
-  data(Linear)
-  LinearCount_filtered <- Linear
-
-3) Test for host-independently regulated circRNAs
-
-.. code-block:: R 
-
- test=Circ.test(CircRNACount_filtered,LinearCount_filtered,CircCoordinates_filtered,group=c(rep(1,6),rep(2,6),rep(3,6)))
- # Significant result show in a summary table
- View(test$summary_table)
-
-4) Visuallize the significantly host-independently regulated circRNAs
-
-.. code-block:: R
-
- for (i in rownames(test$summary_table))  {
-  Circ.ratioplot( CircRNACount_filtered, LinearCount_filtered, CircCoordinates_filtered, plotrow=i, 
-                  groupindicator1=c(rep('1days',6),rep('4days',6),rep('20days',6)), 
-                  lab_legend='Ages' )
- }
-
+hek293.coverage_profiles:
+20_41533050_41551360.NM_032221.txt
+coverage.clusters.all_circles.pdf
+coverage_profiles.all_circles.pdf
 
 --------------------
 

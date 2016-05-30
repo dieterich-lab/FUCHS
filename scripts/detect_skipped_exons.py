@@ -131,7 +131,7 @@ O.close()
 for f in files:
     if f.split('.')[-1] == 'bam':
 	print(f)
-	circle_id = (f.split('_')[0], int(f.split('_')[1]), int(f.split('_')[2]))
+	circle_id = ('_'.join(f.split('_')[0:-3]), int(f.split('_')[-3]), int(f.split('_')[-2]))
 	bamfile = '%s/%s' %(folder, f) 
 	READS = load_bamfile(bamfile)
 	READS = filter_reads(READS)
