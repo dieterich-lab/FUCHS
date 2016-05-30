@@ -160,9 +160,9 @@ The first column contains the circle id formated as folllowed **chr:start|end**.
 ====   ===========    =============     ===================================   =======  ======
 Chr      Start            End               name                               Score   Strand
 ====   ===========    =============     ===================================   =======  ======
- 1      67092175        67093604         NR_075077_exon_0_0_chr1_67092176_r     0       -
- 1      67096251        67096321         NR_075077_exon_1_0_chr1_67096252_r     0       -
- 1      67103237        67103382         NR_075077_exon_2_0_chr1_67103238_r     0       -
+ 1      67092175        67093604         NR_075077_exon_0_0_chr1_67092176_r     0       \-
+ 1      67096251        67096321         NR_075077_exon_1_0_chr1_67096252_r     0       \-
+ 1      67103237        67103382         NR_075077_exon_2_0_chr1_67103238_r     0       \-
 ====   ===========    =============     ===================================   =======  ======
 
 Normal BED file in BED6 format. The name should contain a gene name or gene ID and the exon_number. You can specify how the name should be processed using -p (platform), -s (character used to separate name and exon number) and -e (exon_index). 
@@ -181,18 +181,24 @@ OUTPUT
 **hek293.skipped_exons.bed:** 
 
 **hek293.skipped_exons.txt:** 
+
 --------------------
 
-hek293:
+**hek293:**
+
 20_41533050_41551360_5reads.sorted.bam
+
 --------------------
 
-hek293.coverage_pictures:
+**hek293.coverage_pictures:**
+
 20_41533050_41551360_NM_032221.png
 cluster_means_all_circles.png
+
 --------------------
 
-hek293.coverage_profiles:
+**hek293.coverage_profiles:**
+
 20_41533050_41551360.NM_032221.txt
 coverage.clusters.all_circles.pdf
 coverage_profiles.all_circles.pdf
