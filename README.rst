@@ -156,12 +156,13 @@ The first column contains the circle id formated as folllowed **chr:start|end**.
 **bamfile:** Alignment file produced by any mapper. This file must contain all chimerically mapped reads and may contain also linearly mapped reads.
 
 **bedfile:** 
+
 ====   ===========    =============     ===================================   =======  ======
 Chr      Start            End               name                               Score   Strand
 ====   ===========    =============     ===================================   =======  ======
- 1	67092175	67093604	NR_075077_exon_0_0_chr1_67092176_r	0	-
- 1	67096251	67096321	NR_075077_exon_1_0_chr1_67096252_r	0	-
- 1	67103237	67103382	NR_075077_exon_2_0_chr1_67103238_r	0	-
+ 1      67092175        67093604         NR_075077_exon_0_0_chr1_67092176_r     0       -
+ 1      67096251        67096321         NR_075077_exon_1_0_chr1_67096252_r     0       -
+ 1      67103237        67103382         NR_075077_exon_2_0_chr1_67103238_r     0       -
 ====   ===========    =============     ===================================   =======  ======
 
 Normal BED file in BED6 format. The name should contain a gene name or gene ID and the exon_number. You can specify how the name should be processed using -p (platform), -s (character used to separate name and exon number) and -e (exon_index). 
