@@ -142,10 +142,12 @@ The output of DCC include: CircRNACount, CircCoordinates, LinearCount and CircSk
 INPUT
 ========================================================================
 **circIDs:** 
-.. code-block:: bash
-  $ 1:3740233|3746181	MISEQ:136:000000000-ACBC6:1:2107:10994:20458,MISEQ:136:000000000-ACBC6:1:1116:13529:8356
-  $ 1:8495063|8557523	MISEQ:136:000000000-ACBC6:1:2117:11302:22227,MISEQ:136:000000000-ACBC6:1:1111:4979:10994,MISEQ:136:000000000-ACBC6:1:2117:14163:16664,MISEQ:136:000000000-ACBC6:1:1103:13343:14303
-  $ 1:8495063|8614686	MISEQ:136:000000000-ACBC6:1:2118:9328:9926
+.. table:: circIDs
+
+
+  1:3740233|3746181	MISEQ:136:000000000-ACBC6:1:2107:10994:20458,MISEQ:136:000000000-ACBC6:1:1116:13529:8356
+  1:8495063|8557523	MISEQ:136:000000000-ACBC6:1:2117:11302:22227,MISEQ:136:000000000-ACBC6:1:1111:4979:10994,MISEQ:136:000000000-ACBC6:1:2117:14163:16664,MISEQ:136:000000000-ACBC6:1:1103:13343:14303
+  1:8495063|8614686	MISEQ:136:000000000-ACBC6:1:2118:9328:9926
 
 The first column contains the circle id formated as folllowed **chr:start|end**. The second column is a comma separated list of read names spanning the back-splice junction.
 
@@ -163,10 +165,15 @@ Normal BED file in BED6 format. The name should contain a gene name or gene ID a
 OUTPUT
 ========================================================================
 **hek293.alternative_splicing.txt:** 
+
 **hek293.exon_counts.bed:** 
+
 **hek293.exon_counts.txt:** 
+
 **hek293.mate_status.txt:** 
+
 **hek293.skipped_exons.bed:** 
+
 **hek293.skipped_exons.txt:** 
 --------------------
 
@@ -190,7 +197,3 @@ coverage_profiles.all_circles.pdf
 ========================
 Error and solutions
 ========================
-
- - ERROR: File <file> has inconsistent naming convention for record:
-   CHR_MG132_PATCH 124291803 124294101 ENSMUSG00000098810 . - protein_coding exon CAAA01180111.1
-Please update your bedtools at least to 2.24.0, and make sure the new version is included in your path.
