@@ -183,12 +183,12 @@ NM_005095	1:35358925-35361789,1:35381259-35389082,1:35381259-35390098    1:35381
 NM_001291940    1:236803428-236838599,1:236806144-236816543                    .                                           .          .            1:236803428-236838599|1:236806144-236816543,
 =============  ============================================================    =========================================  =========   ===========  =============================================
 
-*Transcript*: Transcript name as defined by the bed-annotation file
-*circles*: Comma-separated list of circRNA ids derived from this transcript
-*same_start*: Comma-seprated list of circRNA pairs separated by |. Pairs in this column share the same start coordinates. A "." indicates that there are no circle pairs that share the same start coordinates.
-*same_end*: Same as *same_start*, only now, circle pairs share the same end coordinates.
-*overlapping*: Comma-seprated list of circRNA pairs separated by |. Pairs in this column share neither start nor end coordinates, but their relation is such that: start.x < start.y && end.x < end.y && start.y < end.x
-*within*: Same as *overlapping*, only now, circle pairs have the follwoing relation: start.x < start.y && end.x > end.y
+|*Transcript*: Transcript name as defined by the bed-annotation file
+|*circles*: Comma-separated list of circRNA ids derived from this transcript
+|*same_start*: Comma-seprated list of circRNA pairs separated by |. Pairs in this column share the same start coordinates. A "." indicates that there are no circle pairs that share the same start coordinates.
+|*same_end*: Same as *same_start*, only now, circle pairs share the same end coordinates.
+|*overlapping*: Comma-seprated list of circRNA pairs separated by |. Pairs in this column share neither start nor end coordinates, but their relation is such that: start.x < start.y && end.x < end.y && start.y < end.x
+|*within*: Same as *overlapping*, only now, circle pairs have the follwoing relation: start.x < start.y && end.x > end.y
 
 **hek293.exon_counts.bed:** 
 This file is a bed-formatted file that describes the exon-structure and can be loaded into any genome browser. Each line corresponds to a circRNA.
@@ -200,18 +200,18 @@ chr1    35358925        35361789        NM_005095       9               \+      
 chr1    20749723        20773610        NM_016287       4               \-       20749723 20773610   0,255,0  4           159,90,143,159  0,7443,21207,23728
 =====  ============  =============    ============    =============    =======   ======== =========  ======= ===========  ==============  =====================
 
-*Chr*: Chromosome of circRNA
-*Circle Start*: The 5' site of the chimeric junction. This is relative to the reference strand, i.e. start < end! The location is 1-index based
-*Cirlce End*: The 3' site of the chimeric junction. This is relative to the reference strand, i.e. start < end! The location is 0-index based
-*Transcript*: Transcript name as defined by the bed-annotation file
-*Num of Reads* : Number of reads supporting this chimeric junction, in other words, reads that are chimerically mapped to this junction
-*Strand*: Strand of the host-gene
-*Start*: Copied *Circle Start* to stay conform with BED12 format
-*End*: Copied *Circle End* to stay conform with BED12 format
-*Color*: pre defined color the exons will show up in the genome viewer (0,255,0 -> green)
-*Num of Exon*: Number of exons in this circRNA consists of
-*Exon Lengths*: Comma-seprated list of the length of each exon
-*Relative Exon Starts*: Comma-separated list of the relative starting positions of the exons within the circle boundaries.
+|*Chr*: Chromosome of circRNA
+|*Circle Start*: The 5' site of the chimeric junction. This is relative to the reference strand, i.e. start < end! The location is 1-index based
+|*Cirlce End*: The 3' site of the chimeric junction. This is relative to the reference strand, i.e. start < end! The location is 0-index based
+|*Transcript*: Transcript name as defined by the bed-annotation file
+|*Num of Reads* : Number of reads supporting this chimeric junction, in other words, reads that are chimerically mapped to this junction
+|*Strand*: Strand of the host-gene
+|*Start*: Copied *Circle Start* to stay conform with BED12 format
+|*End*: Copied *Circle End* to stay conform with BED12 format
+|*Color*: pre defined color the exons will show up in the genome viewer (0,255,0 -> green)
+|*Num of Exon*: Number of exons in this circRNA consists of
+|*Exon Lengths*: Comma-seprated list of the length of each exon
+|*Relative Exon Starts*: Comma-separated list of the relative starting positions of the exons within the circle boundaries.
 
 **hek293.exon_counts.txt:** 
 This file contains similar information as the previous file, just more detailed inforamtion on the exons. Each line corresponds to one exon.
@@ -230,20 +230,20 @@ hek293   1:20749723-20773610     NM_016287       NM_016287       7       1      
 hek293   1:20749723-20773610     NM_016287       NM_016287       8       1       20773450        20773610        \-       160          4               4               4        0
 ======= =====================  ================ ============  ========== =====  ============   ============= ======= =============   ==============  ===========     ========= ========
 
-*sample*: Sample name as specified by the user. This is useful if the user wants to merge files from different samples
-*circle_id*: circRNA-ID. The circleID is formatted to be copy and pasted to a genome browser for easy access.
-*transcript_id*: 
-*other_ids*:
-*exon_id*:
-*chr*:
-*start*:
-*end*:
-*strand*:
-*exon_length*:
-*unique_reads*:
-*fragments*:
-*number\+*:
-*number\-*:
+|*sample*: Sample name as specified by the user. This is useful if the user wants to merge files from different samples
+|*circle_id*: circRNA-ID. The circleID is formatted to be copy and pasted to a genome browser for easy access
+|*transcript_id*: Transcript name as defined by the bed-annotation file. This is the best fitting transcript. i.e. the splicing variants that contains the most exons that are actually covered
+|*other_ids*: Alternative Transcript names that are either just as fitting, or contain more or less exons as supported by reads
+|*exon_id*: Exon number relative to the host-gene of the circularized exon. One circle may have more than one exon. These will be listed as consecutive lines
+|*chr*: Chromosome the circRNA is located on
+|*start*: 5' start of the exon, relative to the reference strand, 0-based
+|*end*: 3' end of the exon, relative to the reference start, 0-based
+|*strand*: Strand of the host-gene
+|*exon_length*: Length of the current exon
+|*unique_reads*: Number of unique reads associated with the chimeric junction. When the data is paired end, then both ends are considered as separate reads.
+|*fragments*: Number of broken fragments aligning to the circle
+|*number\+*: Number of reads spanning the chimeric junction on the forward strand
+|*number\-*: Number of reads spanning the chimeric junction on the reverse strand (if reads are only from one strand, it could indicate, that there is a sequencing bias.)
 
 
 **hek293.mate_status.txt:** 
