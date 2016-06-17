@@ -172,7 +172,9 @@ OUTPUT
 ========================================================================
 
 **hek293.alternative_splicing.txt:** 
+
 This file summarizes the relationship of different circRNAs derived from the same host-gene. 
+
 =============  ============================================================    =========================================  =========   ===========  =============================================
 Transcript      circles                                                        same_start                                 same_end    overlapping  within
 =============  ============================================================    =========================================  =========   ===========  =============================================
@@ -180,6 +182,7 @@ NM_016287	1:20749723-20773610                                            .      
 NM_005095	1:35358925-35361789,1:35381259-35389082,1:35381259-35390098    1:35381259-35389082|1:35381259-35390098,    .          .            .
 NM_001291940    1:236803428-236838599,1:236806144-236816543                    .                                           .          .            1:236803428-236838599|1:236806144-236816543,
 =============  ============================================================    =========================================  =========   ===========  =============================================
+
 *Transcript*: Transcript name as defined by the bed-annotation file
 *circles*: Comma-separated list of circRNA ids derived from this transcript
 *same_start*: Comma-seprated list of circRNA pairs separated by |. Pairs in this column share the same start coordinates. A "." indicates that there are no circle pairs that share the same start coordinates.
@@ -189,12 +192,14 @@ NM_001291940    1:236803428-236838599,1:236806144-236816543                    .
 
 **hek293.exon_counts.bed:** 
 This file is a bed-formatted file that describes the exon-structure and can be loaded into any genome browser. Each line corresponds to a circRNA.
+
 =====  ============  =============    ============    =============    =======   ======== =========  ======= ===========  ==============  =====================
 Chr    Circle Start   Circle  End      Transcript     Num of Reads     Strand      Start   End        Color  Num of Exon  Exon Lengths     Relative Exon Starts   
 =====  ============  =============    ============    =============    =======   ======== =========  ======= ===========  ==============  =====================
 chr1    35358925        35361789        NM_005095       9               \+       35358925 35361789   0,255,0  3           521,61,170      0,2269,2694
 chr1    20749723        20773610        NM_016287       4               \-       20749723 20773610   0,255,0  4           159,90,143,159  0,7443,21207,23728
 =====  ============  =============    ============    =============    =======   ======== =========  ======= ===========  ==============  =====================
+
 *Chr*: Chromosome of circRNA
 *Circle Start*: The 5' site of the chimeric junction. This is relative to the reference strand, i.e. start < end! The location is 1-index based
 *Cirlce End*: The 3' site of the chimeric junction. This is relative to the reference strand, i.e. start < end! The location is 0-index based
@@ -210,6 +215,7 @@ chr1    20749723        20773610        NM_016287       4               \-      
 
 **hek293.exon_counts.txt:** 
 This file contains similar information as the previous file, just more detailed inforamtion on the exons. Each line corresponds to one exon.
+
 ======= =====================  ================ ============  ========== =====  ============   ============= ======= =============   ==============  ===========     ========= ========
 sample   circle_id               transcript_id   other_ids       exon_id chr     start           end          strand  exon_length     unique_reads    fragments       number\+ number\-
 ======= =====================  ================ ============  ========== =====  ============   ============= ======= =============   ==============  ===========     ========= ========
