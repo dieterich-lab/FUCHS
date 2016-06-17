@@ -172,7 +172,7 @@ OUTPUT
 ========================================================================
 
 **hek293.alternative_splicing.txt:** 
-
+This file summarizes the relationship of different circRNAs derived from the same host-gene. 
 =============  ============================================================    =========================================  =========   ===========  =============================================
 Transcript      circles                                                        same_start                                 same_end    overlapping  within
 =============  ============================================================    =========================================  =========   ===========  =============================================
@@ -180,20 +180,36 @@ NM_016287	1:20749723-20773610                                            .      
 NM_005095	1:35358925-35361789,1:35381259-35389082,1:35381259-35390098    1:35381259-35389082|1:35381259-35390098,    .          .            .
 NM_001291940    1:236803428-236838599,1:236806144-236816543                    .                                           .          .            1:236803428-236838599|1:236806144-236816543,
 =============  ============================================================    =========================================  =========   ===========  =============================================
-
+*Transcript*: Transcript name as defined by the bed-annotation file
+*circles*: Comma-separated list of circRNA ids derived from this transcript
+*same_start*: Comma-seprated list of circRNA pairs separated by |. Pairs in this column share the same start coordinates. A "." indicates that there are no circle pairs that share the same start coordinates.
+*same_end*: Same as *same_start*, only now, circle pairs share the same end coordinates.
+*overlapping*: Comma-seprated list of circRNA pairs separated by |. Pairs in this column share neither start nor end coordinates, but their relation is such that: start.x < start.y && end.x < end.y && start.y < end.x
+*within*: Same as *overlapping*, only now, circle pairs have the follwoing relation: start.x < start.y && end.x > end.y
 
 **hek293.exon_counts.bed:** 
-
+This file is a bed-formatted file that describes the exon-structure and can be loaded into any genome browser. Each line corresponds to a circRNA.
 =====  ============  =============    ============    =============    =======   ======== =========  ======= ===========  ==============  =====================
 Chr    Circle Start   Circle  End      Transcript     Num of Reads     Strand      Start   End        Color  Num of Exon  Exon Lengths     Relative Exon Starts   
 =====  ============  =============    ============    =============    =======   ======== =========  ======= ===========  ==============  =====================
 chr1    35358925        35361789        NM_005095       9               \+       35358925 35361789   0,255,0  3           521,61,170      0,2269,2694
 chr1    20749723        20773610        NM_016287       4               \-       20749723 20773610   0,255,0  4           159,90,143,159  0,7443,21207,23728
 =====  ============  =============    ============    =============    =======   ======== =========  ======= ===========  ==============  =====================
-
+*Chr*: Chromosome of circRNA
+*Circle Start*: The 5' site of the chimeric junction. This is relative to the reference strand, i.e. start < end! The location is 1-index based
+*Cirlce End*: The 3' site of the chimeric junction. This is relative to the reference strand, i.e. start < end! The location is 0-index based
+*Transcript*: Transcript name as defined by the bed-annotation file
+*Num of Reads* : Number of reads supporting this chimeric junction, in other words, reads that are chimerically mapped to this junction
+*Strand*: Strand of the host-gene
+*Start*: Copied *Circle Start* to stay conform with BED12 format
+*End*: Copied *Circle End* to stay conform with BED12 format
+*Color*: pre defined color the exons will show up in the genome viewer (0,255,0 -> green)
+*Num of Exon*: Number of exons in this circRNA consists of
+*Exon Lengths*: Comma-seprated list of the length of each exon
+*Relative Exon Starts*: Comma-separated list of the relative starting positions of the exons within the circle boundaries.
 
 **hek293.exon_counts.txt:** 
-
+This file contains similar information as the previous file, just more detailed inforamtion on the exons. Each line corresponds to one exon.
 ======= =====================  ================ ============  ========== =====  ============   ============= ======= =============   ==============  ===========     ========= ========
 sample   circle_id               transcript_id   other_ids       exon_id chr     start           end          strand  exon_length     unique_reads    fragments       number\+ number\-
 ======= =====================  ================ ============  ========== =====  ============   ============= ======= =============   ==============  ===========     ========= ========
@@ -207,6 +223,21 @@ hek293   1:20749723-20773610     NM_016287       NM_016287       6       0      
 hek293   1:20749723-20773610     NM_016287       NM_016287       7       1       20770929        20771073        \-       144          1               1               1        0
 hek293   1:20749723-20773610     NM_016287       NM_016287       8       1       20773450        20773610        \-       160          4               4               4        0
 ======= =====================  ================ ============  ========== =====  ============   ============= ======= =============   ==============  ===========     ========= ========
+
+*sample*: Sample name as specified by the user. This is useful if the user wants to merge files from different samples
+*circle_id*: circRNA-ID. The circleID is formatted to be copy and pasted to a genome browser for easy access.
+*transcript_id*: 
+*other_ids*:
+*exon_id*:
+*chr*:
+*start*:
+*end*:
+*strand*:
+*exon_length*:
+*unique_reads*:
+*fragments*:
+*number\+*:
+*number\-*:
 
 
 **hek293.mate_status.txt:** 
