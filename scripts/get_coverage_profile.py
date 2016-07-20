@@ -286,3 +286,21 @@ for f in files:
 
 ## make pictures using rscript
 
+#### test area
+#bedfile = '/home/fmetge/Documents/work/Annotations/hg38/hg38.RefSeq.exons.bed'
+#bamfile = '/home/fmetge/Documents/work/circRNA/exon_usage/test_outputfolder/MiSeq_A_300BP/2_199368605_199433514_7reads.sorted.bam'
+#bamfile = '/home/fmetge/Documents/work/circRNA/exon_usage/test_outputfolder/MiSeq_A_300BP/10_87223718_87355425_9reads.sorted.bam'
+
+
+#x = pybedtools.example_bedtool(bamfile)
+#bedfile = '/home/fmetge/Documents/work/Annotations/hg38/hg38.RefSeq.exons.bed'
+#bamfile = '/home/fmetge/Documents/work/circRNA/FUCHS/testdata/output/test_20160106/12_1236769_1290012_12reads.sorted.bam'
+#b = pybedtools.example_bedtool(bedfile)
+#exon_counts, found_features = circle_exon_count(bamfile, bedfile, 3, '_')
+
+#filtered_features = filter_features(b, found_features)
+##y = x.coverage(filtered_features, d = True)
+
+#coverage_track = circle_coverage_profile(bamfile, filtered_features, 3)
+
+

@@ -127,11 +127,6 @@ def write_results(results, outfile):
     return
 
 # run script
-# bamfolder = '/beegfs/group_dv/home/FMetge/projects/Franzi/circRNA/mousedata_fuchs/FUCHS/old_cerebellum'
-# outfile = '/beegfs/group_dv/home/FMetge/projects/Franzi/circRNA/mousedata_fuchs/FUCHS/old_cerebellum_mate_status.txt'
-# bedfile = '/beegfs/group_dv/home/FMetge/genomes/mus_musculus/GRCm38_79/mm10.ensembl.exons.bed'
-# lola = '18_10004896_10016644_7reads.sorted.bam'
-
 tempfile.tempdir = '/beegfs/group_dv/home/FMetge/tmp'
 
 
@@ -139,23 +134,3 @@ RESULTS = iterate_over_folder(bamfolder, bedfile, platform, split_character)
 write_results(RESULTS, outfile)
 
 
-#lola = '5_27382755_27469485_27reads.sorted.bam'
-
-
-#lola = '5_27382755_27469485_172reads.sorted.bam'
-#bamfolder = '.'
-#outfile = '../test'
-#bedfile = '/beegfs/group_dv/home/FMetge/genomes/mus_musculus/GRCm38_79/mm10.ensembl.exons.bed'
-
-#circle_coordinates = ['_'.join(lola.split('_')[0:-3]), int(lola.split('_')[-3]), int(lola.split('_')[-2])]
-#num_reads = int(lola.split('_')[-1].split('.')[0]. replace('reads', ''))
-##MATES, FRAGMENTS = get_reads_from_bamfile('%s/%s' %(inputfolder, lola), circle_coordinates)
-#bamfile = '%s/%s' %(bamfolder, lola)
-
-#circle = pysam.AlignmentFile(bamfile, "rb")
-#for i in circle:
-    #print(i.reference_start)
-    #print(i.reference_end)
-
-
-#circle.close()

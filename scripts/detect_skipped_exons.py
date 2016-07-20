@@ -23,6 +23,9 @@ bedfile = args.bedfile
 platform = args.ref_platform
 
 # define functions
+
+
+# define functions
 def load_bamfile(bamfile):
     reads = {}
     B = pysam.AlignmentFile(bamfile, 'rb')
@@ -50,66 +53,76 @@ def filter_reads(reads):
 	    reads[lola] = occurences 
     return(reads)
 
-def intersect_introns_with_bedfile(bedfile, reads, coordinates):
-    exons = pybedtools.example_bedtool(bedfile)
-    exons = exons.filter(lambda b: b.chrom == coordinates[0] and b.start >= coordinates[1] and b.end <= coordinates[2])
-    skipped_exons = {}
+
+
+def get_introns(reads):
+    introns = {}
     for lola in reads:
 	for forrest in reads[lola]:
-	    reads[lola][forrest]['intron'] = {}
 	    breakpoints = reads[lola][forrest]['breakpoint']
 	    starts = breakpoints[::2]
 	    ends = breakpoints[1::2]
 	    for i,start in enumerate(starts):
-		intron = pybedtools.BedTool('%s %s %s' %(reads[lola][forrest]['reference'], start, ends[i]), from_string=True)
-		exons = pybedtools.example_bedtool(bedfile)
-		features = exons.intersect(intron)
-		for skipped in features:
-		    if not (skipped[0], int(skipped[1]), int(skipped[2])) in skipped_exons:
-			skipped_exons[(skipped[0], int(skipped[1]), int(skipped[2]))] = {'reads' : [], 'intron': [], 'name': skipped[3] }
-		    skipped_exons[(skipped[0], int(skipped[1]), int(skipped[2]))]['reads'] += [lola] 
-		    skipped_exons[(skipped[0], int(skipped[1]), int(skipped[2]))]['intron'] += [(reads[lola][forrest]['reference'], start, ends[i])]
-    return(skipped_exons)
+		if not (reads[lola][forrest]['reference'], start, ends[i]) in introns:
+		    introns[(reads[lola][forrest]['reference'], start, ends[i])] = {'spanning_reads': [],  'skipped_exons': {}}
+		introns[(reads[lola][forrest]['reference'], start, ends[i])]['spanning_reads'] += [lola]
+    return(introns)
 
-def identify_skipped_exons(bamfile, skipped_exons):
+def intersect_introns_with_bedfile(bedfile, reads, introns, coordinates):
+    exons = pybedtools.example_bedtool(bedfile)
+    exons = exons.filter(lambda b: b.chrom == coordinates[0] and b.start >= coordinates[1] and b.end <= coordinates[2])
+    for lola in introns:
+	print(lola)
+	intron = pybedtools.BedTool('%s %s %s' %(lola[0], lola[1] + 1, lola[2] -1), from_string=True)
+	features = exons.intersect(intron)
+	for skipped in features:
+	    print(skipped)
+	    introns[lola]['skipped_exons'][(skipped[0], int(skipped[1]), int(skipped[2]))] = {'name':skipped[3], 'reads':[]}
+    return(introns)
+
+
+def identify_skipped_exons(bamfile, introns):
     bam = pybedtools.example_bedtool(bamfile)
-    for lola in skipped_exons:
-	exon_readcount = []
-	coordinates = pybedtools.BedTool('%s %s %s' %(lola[0], lola[1], lola[2]), from_string=True)
-	reads = bam.intersect(coordinates)
-	for r in reads:
-	    exon_readcount += [r[0]]
-	exon_readcount = set(exon_readcount)
-	skipped_exons[lola]['exon_readcount'] = len(exon_readcount)
-    return(skipped_exons)
+    for lola in introns:
+	if len(introns[lola]['skipped_exons']) > 0:
+	    for forrest in introns[lola]['skipped_exons']:
+		coordinates = pybedtools.BedTool('%s %s %s' %(forrest[0], forrest[1], forrest[2]), from_string=True)
+		reads = bam.intersect(coordinates, split = True)
+		for r in reads:
+		    introns[lola]['skipped_exons'][forrest]['reads'] += [r[0]]
+    return(introns)
 
-def write_exon_skipping(skipped, outfile, circle_id, platform):
+
+def write_exon_skipping(introns, outfile, circle_id, platform):
     O = open(outfile, 'a')
-    for exon in skipped:
-	if not len(set(skipped[exon]['reads'])) == skipped[exon]['exon_readcount']:
-	    if platform == 'refseq':
-		name = '_'.join(skipped[exon]['name'].split('_')[0:2])
-	    else:
-		name = skipped[exon]['name'].split('_')[0]
-	    O.write('%s_%s_%s\t%s\t%s:%s-%s\t%s\t%s\t%s\t%s\n' %(circle_id[0], circle_id[1], circle_id[2], name, exon[0], exon[1], exon[2], set(skipped[exon]['intron']) ,','.join(set(skipped[exon]['reads'])), len(set(skipped[exon]['reads'])), skipped[exon]['exon_readcount']))
+    for intron in introns:
+	if len(introns[intron]['skipped_exons']) > 0:
+	    for exon in introns[intron]['skipped_exons']:
+		if len(introns[intron]['skipped_exons'][exon]['reads']) > 0:
+		    if platform == 'refseq':
+			name = '_'.join(introns[intron]['skipped_exons'][exon]['name'].split('_')[0:2])
+		    else:
+			name = introns[intron]['skipped_exons'][exon]['name'].split('_')[0]
+		    O.write('%s_%s_%s\t%s\t%s:%s-%s\t%s:%s-%s\t%s\t%s\t%s\n' %(circle_id[0], circle_id[1], circle_id[2], name, exon[0], exon[1], exon[2], intron[0], intron[1], intron[2] ,','.join(set(introns[intron]['spanning_reads'])), len(set(introns[intron]['spanning_reads'])), len(set(introns[intron]['skipped_exons'][exon]['reads']))))
     O.close()    
     return
 
-def write_bed12(skipped, outfile, circle_id, platform):
+def write_bed12(introns, outfile, circle_id, platform):
     O = open(outfile, 'a')
-    for exon in skipped:
-	if not len(set(skipped[exon]['reads'])) == skipped[exon]['exon_readcount'] and (circle_id[2] - circle_id[1] > 100) and (circle_id[2]  >= skipped[exon]['intron'][0][2]) and (circle_id[1] <= skipped[exon]['intron'][0][1] ):
-	    if platform == 'refseq':
-		name = '_'.join(skipped[exon]['name'].split('_')[0:2])
-	    else:
-		name = skipped[exon]['name'].split('_')[0]
-	    if circle_id[0].startswith('chr'):
-		O.write('%s\t%s\t%s\t%s\t%s\t.\t%s\t%s\t255,0,0\t3\t1,%s,1\t0,%s,%s\n' %(circle_id[0], circle_id[1], circle_id[2], name, (float(len(set(skipped[exon]['reads'])))/skipped[exon]['exon_readcount'])*100, skipped[exon]['intron'][0][1], skipped[exon]['intron'][0][2], (exon[2]-exon[1]), exon[1]-circle_id[1], circle_id[2]-circle_id[1]-1))
-	    else:
-		O.write('chr%s\t%s\t%s\t%s\t%s\t.\t%s\t%s\t255,0,0\t3\t1,%s,1\t0,%s,%s\n' %(circle_id[0], circle_id[1], circle_id[2], name, (float(len(set(skipped[exon]['reads'])))/skipped[exon]['exon_readcount'])*100, skipped[exon]['intron'][0][1], skipped[exon]['intron'][0][2], (exon[2]-exon[1]), exon[1]-circle_id[1], circle_id[2]-circle_id[1]-1))
+    for intron in introns:
+	if len(introns[intron]['skipped_exons']) > 0:
+	    for exon in introns[intron]['skipped_exons']:
+		if len(introns[intron]['skipped_exons'][exon]['reads']) > 0 and (circle_id[2] - circle_id[1] > 100) and (circle_id[2]  >= intron[2]) and (circle_id[1] <= intron[1] ):
+		    if platform == 'refseq':
+			name = '_'.join(introns[intron]['skipped_exons'][exon]['name'].split('_')[0:2])
+		    else:
+			name = introns[intron]['skipped_exons'][exon]['name'].split('_')[0]
+		    if circle_id[0].startswith('chr'):
+			O.write('%s\t%s\t%s\t%s\t%s\t.\t%s\t%s\t255,0,0\t3\t1,%s,1\t0,%s,%s\n' %(circle_id[0], circle_id[1], circle_id[2], name, (float(len(set(introns[intron]['spanning_reads'])))/len(set(introns[intron]['skipped_exons'][exon]['reads'])))*100, intron[1], intron[2], (exon[2]-exon[1]), exon[1]-circle_id[1], circle_id[2]-circle_id[1]-1))
+		    else:
+			O.write('chr%s\t%s\t%s\t%s\t%s\t.\t%s\t%s\t255,0,0\t3\t1,%s,1\t0,%s,%s\n' %(circle_id[0], circle_id[1], circle_id[2], name, (float(len(set(introns[intron]['spanning_reads'])))/len(set(introns[intron]['skipped_exons'][exon]['reads'])))*100, intron[1], intron[2], (exon[2]-exon[1]), exon[1]-circle_id[1], circle_id[2]-circle_id[1]-1))
     O.close()
     return
-
 
 # run script
 
@@ -135,9 +148,9 @@ for f in files:
 	bamfile = '%s/%s' %(folder, f) 
 	READS = load_bamfile(bamfile)
 	READS = filter_reads(READS)
-	SKIPPED = intersect_introns_with_bedfile(bedfile, READS, circle_id)
-	if len(SKIPPED) > 0:
-	    SKIPPED = identify_skipped_exons(bamfile, SKIPPED)
-	    write_bed12(SKIPPED, outfile_bed, circle_id, platform)
-	    write_exon_skipping(SKIPPED, outfile, circle_id, platform)
+	Introns = get_introns(READS)
+	Introns = intersect_introns_with_bedfile(bedfile, READS, Introns ,circle_id)
+	Introns = identify_skipped_exons(bamfile, Introns)
+	write_bed12(Introns, outfile_bed, circle_id, platform)
+	write_exon_skipping(Introns, outfile, circle_id, platform)
 
