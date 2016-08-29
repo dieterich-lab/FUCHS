@@ -1,16 +1,7 @@
-import os
-import argparse
+# calculate the proportion of circRNA covered by reads. including introns. should probably be independent of mate_status.txt file.
 
-parser = argparse.ArgumentParser(description='Detect genes with different forms of circles')
 
-parser.add_argument('mate_file', metavar = 'sample.mate_status.txt', help = 'file listing the number of single and double breakpoint fragments per circle.' )
-parser.add_argument('folder', metavar = 'sample.coverage_profiles', help = 'Folder containing the coverage profiles of all circles.' )
-
-args = parser.parse_args()
-
-mate_file = args.mate_file
-folder = args.folder
-
+# define functions
 def read_mate_status(infile):
     I = open(infile)
     circles = {}
@@ -58,10 +49,31 @@ def write_mates(mates, outfile, header):
     return
 
 
+# run script
 
-M, H = read_mate_status(mate_file)
-M = iterate_over_circRNAs(M, folder)
-
-write_mates(M, mate_file.replace('.txt', '.added.txt'), H)
+if __name__ == '__main__':
+    
+    # required packages
+    import os
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='calculates the proportion of circRNA that was covered by reads, including introns')
+    
+    # input
+    parser.add_argument('mate_file', metavar = 'sample.mate_status.txt', help = 'file listing the number of single and double breakpoint fragments per circle.' )
+    parser.add_argument('folder', metavar = 'sample.coverage_profiles', help = 'Folder containing the coverage profiles of all circles.' )
+    
+    args = parser.parse_args()
+    
+    # parse_arguments
+    mate_file = args.mate_file
+    folder = args.folder
+    
+    
+    # run
+    M, H = read_mate_status(mate_file)
+    M = iterate_over_circRNAs(M, folder)
+    
+    write_mates(M, mate_file.replace('.txt', '.proportion_covered.txt'), H)
 
 

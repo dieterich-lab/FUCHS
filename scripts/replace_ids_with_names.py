@@ -1,24 +1,5 @@
 # script to replace transcript ids with gene names:
 
-import argparse
-
-parser = argparse.ArgumentParser(description='Replace transcript IDs with gene names.')
-
-# input
-parser.add_argument('transcript_dictionary', metavar = 'gene_names.txt', help = 'tab separated file. Transcript ID in column 1, gene name in column 2.' )
-# options
-parser.add_argument('-e', dest = 'exons', default = '', help = 'FUCHS generated exon_count table to replace transcript IDs with gene names')
-parser.add_argument('-m', dest = 'mates', default = '', help = 'FUCHS generated mate_status table to replace transcript IDs with gene names.')
-
-
-args = parser.parse_args()
-
-# parse arguments
-id_dict = args.transcript_dictionary
-exons = args.exons
-mates = args.mates
-
-
 # define functions
 def read_names_file(infile):
     id_dict = {}
@@ -72,16 +53,37 @@ def write_table(table, header, index, outfile):
 
 # run script
 
-IDs = read_names_file(id_dict)
-
-if not exons == '':
-    E, H = read_exon_counts(exons)
-    E = replace_names(IDs, E)
-    write_table(E, H, 2, exons.replace('.txt', '.genes.txt'))
-
-if not mates == '':
-    M, H = read_mate_status(mates)
-    M = replace_names(IDs, M)
-    write_table(M, H, 1, mates.replace('.txt', '.genes.txt'))
-
-
+if __name__ == '__main__':
+    
+    # required packages
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Replace transcript IDs with gene names.')
+    
+    # input
+    parser.add_argument('transcript_dictionary', metavar = 'gene_names.txt', help = 'tab separated file. Transcript ID in column 1, gene name in column 2.' )
+    # options
+    parser.add_argument('-e', dest = 'exons', default = '', help = 'FUCHS generated exon_count table to replace transcript IDs with gene names')
+    parser.add_argument('-m', dest = 'mates', default = '', help = 'FUCHS generated mate_status table to replace transcript IDs with gene names.')
+    
+    
+    args = parser.parse_args()
+    
+    # parse arguments
+    id_dict = args.transcript_dictionary
+    exons = args.exons
+    mates = args.mates
+    
+    
+    
+    IDs = read_names_file(id_dict)
+    
+    if not exons == '':
+	E, H = read_exon_counts(exons)
+	E = replace_names(IDs, E)
+	write_table(E, H, 2, exons.replace('.txt', '.genes.txt'))
+    
+    if not mates == '':
+	M, H = read_mate_status(mates)
+	M = replace_names(IDs, M)
+	write_table(M, H, 1, mates.replace('.txt', '.genes.txt'))
