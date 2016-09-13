@@ -1,5 +1,5 @@
 *****************************************
-FUCHS - FUll circle CHaracterization from rna-Seq
+FUCHS - FUll circular RNA CHaracterization from rna-Seq
 *****************************************
 FUCHS is a python pipeline desigend to fully characterize circular RNAs. It uses a list of circular RNAs and reads spanning the back-splice junction as well 
 as a BAM file containing the mapping of all reads (alternatively of all chimeric reads).
