@@ -11,12 +11,16 @@ def load_bamfile(bamfile):
     return(reads)
 
 
-def filter_reads(reads):
+def filter_reads(reads, coordinates):
     for lola in reads:
 	if len(reads[lola]) > 1:
 	    occurences = reads[lola]
 	    KEYS = occurences.keys()
 	    mapq = occurences[KEYS[0]]['mapq']
+	    for forrest in KEYS:
+	    	if not occurences[forrest]['reference'] == coordinates[0]:
+	    	    del occurences[forrest]
+	    KEYS = occurences.keys()
 	    for forrest in KEYS:
 		if occurences[forrest]['mapq'] > mapq:
 		    mapq = occurences[forrest]['mapq']
@@ -225,7 +229,7 @@ def run_denovo_exon_chain_reconstruction(f, folder, outfile):
 	bamfile = '%s/%s' %(folder, f) 
 	# load bamfile
 	READS = load_bamfile(bamfile)
-	READS = filter_reads(READS)
+	READS = filter_reads(READS, circ_coordinates)
 	Introns = get_introns(READS)
 	if len(Introns) > 0:
 	    # reconstruct transcripts
