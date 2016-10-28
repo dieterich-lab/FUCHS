@@ -1,17 +1,23 @@
 # define functions
-def load_bamfile(bamfile):
+
+def load_bamfile(bamfile, coordinates):
     reads = {}
     B = pysam.AlignmentFile(bamfile, 'rb')
     for i, lola in enumerate(B):
-	if not lola.get_tag('jI') == [-1]:
+	if not lola.get_tag('jI')[0] == -1 and B.getrname(lola.reference_id) == coordinates[0]:
 	    if not lola.query_name in reads:
 		reads[lola.query_name] = {}
-	    reads[lola.query_name][i] = {'reference': B.getrname(lola.reference_id), 'breakpoint': lola.get_tag('jI'), 'mapq' : lola.mapping_quality}
+	    breakpoints = []
+	    for b in lola.get_tag('jI'):
+		breakpoints += [b]
+	    reads[lola.query_name][i] = {'reference': B.getrname(lola.reference_id), 'breakpoint': breakpoints, 'mapq' : lola.mapping_quality}
     B.close()
     return(reads)
 
 
+
 def filter_reads(reads, coordinates):
+    reads_to_delte = []
     for lola in reads:
 	if len(reads[lola]) > 1:
 	    occurences = reads[lola]
