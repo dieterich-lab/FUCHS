@@ -1,3 +1,6 @@
+#! /usr/bin/env Rscript
+
+
 # analyse mate pairs
 
 old_cerebellum = read.table('old_cerebellum.mate_status.genes.txt', as.is = T, header = T)

@@ -1,3 +1,6 @@
+#! /usr/bin/env Rscript
+
+
 # script that loads the coverage profile and plots a pretty picutre, maybe some additional statistics would be nice
 # need a wrapper to run in python maybe
 

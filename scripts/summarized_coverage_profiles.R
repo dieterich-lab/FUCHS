@@ -1,3 +1,7 @@
+#! /usr/bin/env Rscript
+
+
+
 # script to assign relative position to coverage profiles of circles
 
 # include checks if clusters are empty, it should not just break but just omit the plots, make number of centers flexible
