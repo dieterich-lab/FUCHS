@@ -2,13 +2,15 @@
 
 # main script to run FUCHS
 
-if __name__ == 'main':
+if __name__ == '__main__':
 
     # required packages
     import os
     import argparse
 
-    parser = argparse.ArgumentParser(description='')
+    parser = argparse.ArgumentParser(description='Main script of the FUCHS pipeline.'
+                                                 'For a detailed help see https://github.com/dieterich-lab/FUCHS '
+                                                 'or the included README.rst file.')
 
     # input
     parser.add_argument('circlefile', metavar='sample_circleIDs.txt',
@@ -26,8 +28,11 @@ if __name__ == 'main':
     # options
     parser.add_argument('-r', dest='reads', default=5, type=int,
                         help='Circle has to have at least <r> reads to be analysed.')
+
+    #TODO: default: no multi map
     parser.add_argument('-q', dest='mapq', default=3, type=int,
                         help='MAPQ cutoff, only reads passing this threshold will be written to circle bamfile.')
+    #TODO: add 0 based info
     parser.add_argument('-e', dest='exon_index', default=3, type=int,
                         help='field indicating the exon number after splitting feature name.')
     parser.add_argument('-s', dest='split_character', default='_', help='feature name separator.')
@@ -76,7 +81,7 @@ if __name__ == 'main':
 
     # Step 1: (optional) if DCC was used, extract circle read names from junction file 
     if not 'step1' in skipped_steps:
-        circles = '%s.reads.txt' % junctionfile
+        circles = junctionfile
         if not mates == 'none':
             os.system('python get_readnames_from_DCC.py -m %s %s %s' % (mates, circle_ids, junctionfile))
         else:
