@@ -81,7 +81,7 @@ if __name__ == '__main__':
 
     # Step 1: (optional) if DCC was used, extract circle read names from junction file 
     if not 'step1' in skipped_steps:
-        circles = junctionfile
+        circles = "%s.reads.txt" % junctionfile
         if not mates == 'none':
             os.system('python get_readnames_from_DCC.py -m %s %s %s' % (mates, circle_ids, junctionfile))
         else:
