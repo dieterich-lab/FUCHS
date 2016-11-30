@@ -126,7 +126,14 @@ if __name__ == '__main__':
 
     for f in files:
         if f.split('.')[-1] == 'bam':
-            pysam.sort('%s/%s/%s' % (outfolder, sample, f),
-                       '%s/%s/%s' % (outfolder, sample, f.replace('.bam', '.sorted')))
-            pysam.index('%s/%s/%s.bam' % (outfolder, sample, f.replace('.bam', '.sorted')))
+            # this is the old sort syntax of samtools 0.9x
+            # pysam.sort('%s/%s/%s' % (outfolder, sample, f),
+            #            '%s/%s/%s' % (outfolder, sample, f.replace('.bam', '.sorted')))
+
+            pysam.sort("-o",
+                       '%s/%s/%s' % (outfolder, sample, f.replace('.bam', '.sorted.bam')),
+                       '%s/%s/%s' % (outfolder, sample, f)
+                       )
+
+            pysam.index('%s/%s/%s' % (outfolder, sample, f.replace('.bam', '.sorted.bam')))
             os.system('rm %s/%s/%s' % (outfolder, sample, f))
