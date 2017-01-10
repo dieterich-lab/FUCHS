@@ -87,9 +87,10 @@ if __name__ == '__main__':
         else:
             os.system('python get_readnames_from_DCC.py %s %s' % (circle_ids, junctionfile))
 
-    # Step2 : extract circle reads from sample bam file
-    os.system('python extract_reads.py -r %s -q %s %s %s %s %s' % (
-    cutoff_reads, cutoff_mapq, circles, bamfile, outfolder, sample))
+    if not 'step2' in skipped_steps:
+        # Step2 : extract circle reads from sample bam file
+        os.system('python extract_reads.py -r %s -q %s %s %s %s %s' % (
+        cutoff_reads, cutoff_mapq, circles, bamfile, outfolder, sample))
 
     # Step3 : (optional) get information about possibly rolling circles 
     if not 'step3' in skipped_steps:
