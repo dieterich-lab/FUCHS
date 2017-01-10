@@ -328,8 +328,9 @@ if __name__ == '__main__':
     num_cpus = args.num_cpus
     tmp_folder = args.tmp_folder
 
-    # set temp folder. foldr needs to exist!
+    # set temp folder. folder needs to exist!
     tempfile.tempdir = tmp_folder
+    pybedtools.set_tempdir(tmp_folder)
 
     folder = '%s/%s/' % (infolder, sample)
     outfile = '%s/%s_exon_chain_' % (infolder, sample)
