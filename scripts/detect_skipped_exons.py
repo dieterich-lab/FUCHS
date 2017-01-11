@@ -9,7 +9,7 @@ def load_bamfile(bamfile):
     reads = {}
     B = pysam.AlignmentFile(bamfile, 'rb')
     for i, lola in enumerate(B):
-        if not lola.get_tag('jI') == [-1]:
+        if not -1 in lola.get_tag('jI'):
             if not lola.query_name in reads:
                 reads[lola.query_name] = {}
             reads[lola.query_name][i] = {'reference': B.getrname(lola.reference_id), 'breakpoint': lola.get_tag('jI'),
@@ -40,11 +40,16 @@ def intersect_introns_with_bedfile(bedfile, reads, coordinates):
     skipped_exons = {}
     for lola in reads:
         for forrest in reads[lola]:
+            print reads[lola][forrest]
             reads[lola][forrest]['intron'] = {}
             breakpoints = reads[lola][forrest]['breakpoint']
+            print breakpoints
             starts = breakpoints[::2]
+            print str(starts)
             ends = breakpoints[1::2]
             for i, start in enumerate(starts):
+                print ('index: %s %s' % (start, i))
+                print ('call: %s %s %s' % (reads[lola][forrest]['reference'], start, ends[i]))
                 intron = pybedtools.BedTool('%s %s %s' % (reads[lola][forrest]['reference'], start, ends[i]),
                                             from_string=True)
                 exons = pybedtools.example_bedtool(bedfile)
@@ -146,6 +151,8 @@ if __name__ == '__main__':
     tmp_folder = args.tmp_folder
 
     tempfile.tempdir = tmp_folder
+    pybedtools.set_tempdir(tmp_folder)
+
 
     files = os.listdir(folder)
     outfile_bed = outfile.replace('.txt', '.bed')
