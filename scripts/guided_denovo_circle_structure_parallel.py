@@ -403,6 +403,7 @@ if __name__ == '__main__':
 
     # set temp folder. foldr needs to exist!
     tempfile.tempdir = tmp_folder
+    pybedtools.set_tempdir(tmp_folder)
 
     folder = '%s/%s/' % (infolder, sample)
     outfile = '%s/%s_exon_chain_' % (infolder, sample)
