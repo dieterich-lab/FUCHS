@@ -98,7 +98,7 @@ def get_coverage_profile(bamfile, circ_coordinates, transcripts):
         if 0 in coverage:
             transcript_coverage[t]['coverage_breaks'] = [(circ_coordinates[0], circ_coordinates[1] + coverage.index(0),
                                                           circ_coordinates[1] + len(coverage) - (
-                                                          list(reversed(coverage)).index(0)))]
+                                                              list(reversed(coverage)).index(0)))]
         else:
             transcript_coverage[t]['coverage_breaks'] = []
         for i, intron in enumerate(transcripts[t]):
@@ -205,7 +205,7 @@ def merge_exons(exons):
                 next_exon = sorted_exons[i + 1]
                 if e[2] + 1 >= next_exon[1]:
                     new_exons[(e[0], e[1], next_exon[2])] = ((exons[e] * (e[2] - e[1])) + (
-                    exons[next_exon] * (next_exon[2] - next_exon[1]))) / float(next_exon[2] - e[1])
+                        exons[next_exon] * (next_exon[2] - next_exon[1]))) / float(next_exon[2] - e[1])
                     merged = [e, next_exon]
                 else:
                     new_exons[e] = exons[e]
@@ -213,7 +213,7 @@ def merge_exons(exons):
                 prev_exon = sorted_exons[i - 1]
                 if e[1] - 1 <= prev_exon[2]:
                     new_exons[(e[0], prev_exon[1], e[2])] = ((exons[e] * (e[2] - e[1])) + (
-                    exons[prev_exon] * (prev_exon[2] - prev_exon[1]))) / float(e[2] - prev_exon[1])
+                        exons[prev_exon] * (prev_exon[2] - prev_exon[1]))) / float(e[2] - prev_exon[1])
                     merged = [e, prev_exon]
                 else:
                     new_exons[e] = exons[e]
@@ -226,23 +226,23 @@ def write_bed12(outfile, transcript_coverage, circ_coordinates, coverage, intron
     O = open(outfile, 'a')
     for t in transcript_coverage:
         O.write('%s\t%s\t%s\t%s:%s-%s|%s|%s\t' % (
-        circ_coordinates[0], circ_coordinates[1], circ_coordinates[2], circ_coordinates[0], circ_coordinates[1],
-        circ_coordinates[2], t, 1 - (coverage.count(0) / float(len(coverage)))))
+            circ_coordinates[0], circ_coordinates[1], circ_coordinates[2], circ_coordinates[0], circ_coordinates[1],
+            circ_coordinates[2], t, 1 - (coverage.count(0) / float(len(coverage)))))
         transcript_confidence = []
         if len(transcript_coverage[t]['introns']) > 0:
             for i in transcript_coverage[t]['introns']:
                 transcript_confidence += [len(introns[i]['spanning_reads'])]
             O.write('%s\t.\t%s\t%s\t255,0,0\t%s\t' % (
-            int(sum(transcript_confidence) / float(len(transcript_confidence))), circ_coordinates[1],
-            circ_coordinates[2], len(transcript_coverage[t]['exons'])))
+                int(sum(transcript_confidence) / float(len(transcript_confidence))), circ_coordinates[1],
+                circ_coordinates[2], len(transcript_coverage[t]['exons'])))
         else:
             if len(transcript_coverage[t]['exons']) > 0:
                 O.write('%s\t.\t%s\t%s\t255,0,0\t%s\t' % (
-                int(sum(transcript_coverage[t]['exons'].values()) / float(len(transcript_coverage[t]['exons']))),
-                circ_coordinates[1], circ_coordinates[2], len(transcript_coverage[t]['exons'])))
+                    int(sum(transcript_coverage[t]['exons'].values()) / float(len(transcript_coverage[t]['exons']))),
+                    circ_coordinates[1], circ_coordinates[2], len(transcript_coverage[t]['exons'])))
             else:
                 O.write('0\t.\t%s\t%s\t255,0,0\t%s\t' % (
-                circ_coordinates[1], circ_coordinates[2], len(transcript_coverage[t]['exons'])))
+                    circ_coordinates[1], circ_coordinates[2], len(transcript_coverage[t]['exons'])))
         exon_length = []
         exon_location = []
         sorted_exons = sorted(transcript_coverage[t]['exons'])
@@ -266,8 +266,8 @@ def write_bed6(transcript_coverage, outfile, circ_coordinates, coverage):
     sorted_exons = sorted(exons.keys())
     for e in sorted_exons:
         O.write('%s\t%s\t%s\t%s:%s-%s|%s\t%s\t.\n' % (
-        e[0], e[1], e[2], circ_coordinates[0], circ_coordinates[1], circ_coordinates[2], ','.join(exons[e]),
-        int(sum(coverage[e[1] - circ_coordinates[1]:e[2] - circ_coordinates[1]]) / float(e[2] - e[1]))))
+            e[0], e[1], e[2], circ_coordinates[0], circ_coordinates[1], circ_coordinates[2], ','.join(exons[e]),
+            int(sum(coverage[e[1] - circ_coordinates[1]:e[2] - circ_coordinates[1]]) / float(e[2] - e[1]))))
     O.close()
     return
 
@@ -288,30 +288,31 @@ def write_single_exon(outfile, coverage, circ_coordinates):
     O6 = open('%sinferred_6.bed' % (outfile), 'a')
     if 0 in coverage and sum(coverage) > 0:
         breakpoints = (
-        circ_coordinates[1] + coverage.index(0), circ_coordinates[2] - (list(reversed(coverage)).index(0)))
+            circ_coordinates[1] + coverage.index(0), circ_coordinates[2] - (list(reversed(coverage)).index(0)))
         exon1 = (circ_coordinates[0], circ_coordinates[1], breakpoints[0])
         exon2 = (circ_coordinates[0], breakpoints[1], circ_coordinates[2])
         O12.write('%s\t%s\t%s\t%s:%s-%s|0|%s\t%s\t.\t%s\t%s\t255,0,0\t2\t%s,%s\t0,%s\n' % (
-        circ_coordinates[0], circ_coordinates[1], circ_coordinates[2], circ_coordinates[0], circ_coordinates[1],
-        circ_coordinates[2], 1 - (coverage.count(0) / float(len(coverage))), int((sum(
-            coverage[:coverage.index(0)]) / float(coverage.index(0)) + sum(
-            coverage[breakpoints[1] - circ_coordinates[1]:]) / float(circ_coordinates[2] - breakpoints[1])) / 2),
-        circ_coordinates[1], circ_coordinates[2], coverage.index(0), circ_coordinates[2] - breakpoints[1],
-        breakpoints[1] - circ_coordinates[1]))
+            circ_coordinates[0], circ_coordinates[1], circ_coordinates[2], circ_coordinates[0], circ_coordinates[1],
+            circ_coordinates[2], 1 - (coverage.count(0) / float(len(coverage))), int((sum(
+                coverage[:coverage.index(0)]) / float(coverage.index(0)) + sum(
+                coverage[breakpoints[1] - circ_coordinates[1]:]) / float(circ_coordinates[2] - breakpoints[1])) / 2),
+            circ_coordinates[1], circ_coordinates[2], coverage.index(0), circ_coordinates[2] - breakpoints[1],
+            breakpoints[1] - circ_coordinates[1]))
         O6.write('%s\t%s\t%s\t%s:%s-%s|0\t%s\t.\n' % (
-        exon1[0], exon1[1], exon1[2], circ_coordinates[0], circ_coordinates[1], circ_coordinates[2],
-        int(sum(coverage[:coverage.index(0)]) / float(coverage.index(0)))))
+            exon1[0], exon1[1], exon1[2], circ_coordinates[0], circ_coordinates[1], circ_coordinates[2],
+            int(sum(coverage[:coverage.index(0)]) / float(coverage.index(0)))))
         O6.write('%s\t%s\t%s\t%s:%s-%s|0\t%s\t.\n' % (
-        exon2[0], exon2[1], exon2[2], circ_coordinates[0], circ_coordinates[1], circ_coordinates[2],
-        int(sum(coverage[breakpoints[1] - circ_coordinates[1]:]) / float(circ_coordinates[2] - breakpoints[1]))))
+            exon2[0], exon2[1], exon2[2], circ_coordinates[0], circ_coordinates[1], circ_coordinates[2],
+            int(sum(coverage[breakpoints[1] - circ_coordinates[1]:]) / float(circ_coordinates[2] - breakpoints[1]))))
     elif not 0 in coverage:
         O12.write('%s\t%s\t%s\t%s:%s-%s|0|%s\t%s\t.\t%s\t%s\t255,0,0\t1\t%s\t0\n' % (
-        circ_coordinates[0], circ_coordinates[1], circ_coordinates[2], circ_coordinates[0], circ_coordinates[1],
-        circ_coordinates[2], 1 - (coverage.count(0) / float(len(coverage))), int(sum(coverage) / float(len(coverage))),
-        circ_coordinates[1], circ_coordinates[2], circ_coordinates[2] - circ_coordinates[1]))
+            circ_coordinates[0], circ_coordinates[1], circ_coordinates[2], circ_coordinates[0], circ_coordinates[1],
+            circ_coordinates[2], 1 - (coverage.count(0) / float(len(coverage))),
+            int(sum(coverage) / float(len(coverage))),
+            circ_coordinates[1], circ_coordinates[2], circ_coordinates[2] - circ_coordinates[1]))
         O6.write('%s\t%s\t%s\t%s:%s-%s|0\t%s\t.\n' % (
-        circ_coordinates[0], circ_coordinates[1], circ_coordinates[2], circ_coordinates[0], circ_coordinates[1],
-        circ_coordinates[2], int(sum(coverage) / float(len(coverage)))))
+            circ_coordinates[0], circ_coordinates[1], circ_coordinates[2], circ_coordinates[0], circ_coordinates[1],
+            circ_coordinates[2], int(sum(coverage) / float(len(coverage)))))
     else:
         print('no reads for circle %s:%s-%s' % (circ_coordinates[0], circ_coordinates[1], circ_coordinates[2]))
     O6.close()
@@ -373,20 +374,20 @@ if __name__ == '__main__':
     import argparse
     import tempfile
 
-    import os, sys, errno
-    import re
-    from time import time
+    import os
     import multiprocessing
 
     parser = argparse.ArgumentParser(
-        description='file to run a denonvo exon chain reconstruction. circRNAs are independent from each other and script can be run on multiple cores')
+        description='file to run a denonvo exon chain reconstruction. '
+                    'circRNAs are independent from each other and script can be run on multiple cores')
     # input
     parser.add_argument('inputfolder', metavar='folder',
                         help='folder containing all circle bam files. (full path, but without sample name)')
     parser.add_argument('sample', metavar='sample_name', help='sample_name to title every thing.')
     # options
     parser.add_argument('-A', dest='annotation', default='.',
-                        help='if specified, FUCHS will use the annotation to reconstruct the internal structure of unsupported circRNA regions')
+                        help='if specified, FUCHS will use the annotation to '
+                             'reconstruct the internal structure of unsupported circRNA regions')
     parser.add_argument('-c', dest='num_cpus', required=False, type=int, default=multiprocessing.cpu_count(),
                         help='Number of processors to use')
     parser.add_argument('--tmp', dest='tmp_folder', default='.',
