@@ -33,3 +33,4 @@ boxplot(old_cerebellum$max_length, young_cerebellum$max_length, old_hippocampus$
 abline(h = 500, lty = 2)
 # significant difference between young and old but not between different brain regions
 
+warnings()
