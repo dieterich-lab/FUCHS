@@ -55,6 +55,8 @@ def get_statistics(mates):
 def annotate_circle(circle_coordinates, bedfile, platform, split_character):
     circle = pybedtools.BedTool('%s %s %s' % (circle_coordinates[0], circle_coordinates[1], circle_coordinates[2]),
                                 from_string=True)
+    print circle
+    exit()
     exons = pybedtools.example_bedtool(bedfile)
     features = exons.intersect(circle)
     lengths = {}
@@ -157,6 +159,7 @@ if __name__ == '__main__':
 
     # set temp folder
     tempfile.tempdir = tmp_folder
+    pybedtools.set_tempdir(tmp_folder)
 
     RESULTS = iterate_over_folder(bamfolder, bedfile, platform, split_character)
     write_results(RESULTS, outfile)
