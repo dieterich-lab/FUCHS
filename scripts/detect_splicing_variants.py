@@ -146,6 +146,7 @@ if __name__ == '__main__':
 
     # set temp folder
     tempfile.tempdir = tmp_folder
+    pybedtools.set_tempdir(tmp_folder)
 
     # run
     circles = read_circle_file(circlefile)
