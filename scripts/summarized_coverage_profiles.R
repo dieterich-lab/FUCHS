@@ -1,6 +1,8 @@
 #! /usr/bin/env Rscript
 
-
+# let's make sure all packages we need are actually installed
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(amap, Hmisc, gplots)
 
 # script to assign relative position to coverage profiles of circles
 
@@ -71,9 +73,6 @@ dev.off()
 
 # write cluster table -> check for strandedness of hostgene maybe the dip-shift correlates with strand.
 # clustering
-library(amap)
-library(Hmisc)
-library(gplots)
 
 # define a function to choose number of centers
 choose_centers <- function(D){
@@ -174,3 +173,4 @@ if(centers > 1){
   print('ERROR not enough long circles in table to perform a clustering')
 }
 
+warnings()
