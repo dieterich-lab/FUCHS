@@ -68,7 +68,7 @@ if __name__ == '__main__':
     mates = args.mates
     junctionfile = args.star_junction_file
     circle_ids = args.circle_ids
-    tmp_folder = args.tmp_folder  # add to all scripts!!!
+    tmp_folder = args.tmp_folder
 
     # test for correct input data
     accepted_platforms = ('refseq', 'ensembl')
@@ -89,29 +89,29 @@ if __name__ == '__main__':
 
     if not 'step2' in skipped_steps:
         # Step2 : extract circle reads from sample bam file
-        os.system('python extract_reads.py -r %s -q %s %s %s %s %s' % (
-        cutoff_reads, cutoff_mapq, circles, bamfile, outfolder, sample))
+        os.system('python extract_reads.py -r %s -q %s %s %s %s %s --tmp %s' % (
+        cutoff_reads, cutoff_mapq, circles, bamfile, outfolder, sample, tmp_folder))
 
     # Step3 : (optional) get information about possibly rolling circles 
     if not 'step3' in skipped_steps:
-        os.system('python get_mate_information.py -p %s -s %s -a %s %s/%s %s/%s.mate_status.txt' %
-                  (platform, split_character, bedfile, outfolder, sample, outfolder, sample))
+        os.system('python get_mate_information.py -p %s -s %s -a %s %s/%s %s/%s.mate_status.txt --tmp %s' %
+                  (platform, split_character, bedfile, outfolder, sample, outfolder, sample, tmp_folder))
 
     # Step4 : (optional) find exon skipping events
     if not 'step4' in skipped_steps:
-        os.system('python detect_skipped_exons.py %s/%s %s %s/%s.skipped_exons.txt' %
-                  (outfolder, sample, bedfile, outfolder, sample))
+        os.system('python detect_skipped_exons.py %s/%s %s %s/%s.skipped_exons.txt --tmp %s' %
+                  (outfolder, sample, bedfile, outfolder, sample, tmp_folder))
 
     # Step5 : (optional) identify different circles within the same host gene
     if not 'step5' in skipped_steps:
-        os.system('python detect_splicing_variants.py -s %s -p %s %s %s %s/%s.alternative_splicing.txt' %
-                  (split_character, platform, circles, bedfile, outfolder, sample))
+        os.system('python detect_splicing_variants.py -s %s -p %s %s %s %s/%s.alternative_splicing.txt --tmp %s' %
+                  (split_character, platform, circles, bedfile, outfolder, sample, tmp_folder))
 
     # Step6 : (optional) generate coverage profile for each circle
     # (one transcript per gene, best if most fitting transcript)
     if not 'step6' in skipped_steps:
-        os.system('python get_coverage_profile.py -e %s -s %s -p %s %s %s %s' %
-                  (exon_index, split_character, platform, bedfile, outfolder, sample))
+        os.system('python get_coverage_profile.py -e %s -s %s -p %s %s %s %s --tmp %s' %
+                  (exon_index, split_character, platform, bedfile, outfolder, sample, tmp_folder))
 
     # Step7 : (optional, requires step 5)
     if not 'step7' in skipped_steps:
