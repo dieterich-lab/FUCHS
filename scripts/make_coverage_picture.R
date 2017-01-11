@@ -5,11 +5,9 @@
 # need a wrapper to run in python maybe
 
 # submitted as commandline parameter
-# coverage_file = '/home/fmetge/Documents/work/circRNA/exon_usage/test_outputfolder/MiSeq_A_300BP.coverage_profiles/2:120127688|120175004_NM_020909.txt'
-# output_folder = '/home/fmetge/Documents/work/circRNA/exon_usage/test_outputfolder/MiSeq_A_300BP.coverage_pictures/'
 
 Sys.setenv("DISPLAY"=":0")
-options(echo=FALSE) # if you want see commands in output file
+options(echo=TRUE) # if you want see commands in output file
 args <- commandArgs(trailingOnly = TRUE)
 
 coverage_file = args[1]
@@ -43,3 +41,6 @@ smoothed = smoothing(D$coverage)
 png(paste(output_folder, circle_id, '_',transcript_name, '.png', sep = ''), type = 'cairo')
   plot(smoothed, type = 'h', col = D$exon, main = paste(circle_id, transcript_name, sep = '\n'), xlab = paste('Exon:', min(D$exon), '- Exon:', max(D$exon)), ylab = 'number of reads')
 dev.off()
+
+
+warnings()
