@@ -80,10 +80,14 @@ def filter_features(bed_features, feature_names):
     """
     """
     intervals = []
+    tmp = ""
     for interval in bed_features:
         if interval[3] in feature_names:
             intervals += [interval]
-    return intervals
+            tmp += str(interval)
+            print interval
+    print tmp
+    return tmp
 
 
 def choose_transcript(exon_counts):
@@ -114,10 +118,11 @@ def choose_transcript(exon_counts):
 def circle_coverage_profile(bamfile, bedfile, exon_ind, split_character, platform):
     """
     """
-    x = pybedtools.example_bedtool(bamfile)
-    y = x.coverage(bedfile, d=True, split=True)
+    virtual_bed = pybedtools.BedTool(bedfile, from_string=True)
+    bam = pybedtools.example_bedtool(bamfile)
+    coverage = virtual_bed.coverage(bam, d=True, split=True)
     transcriptwise_coverage = {}
-    for position in y:
+    for position in coverage:
         if platform == 'refseq':
             transcript = split_character.join(position[3].split(split_character)[0:2])
         elif platform == 'ensembl':
@@ -274,6 +279,7 @@ if __name__ == '__main__':
 
     # set temp folder
     tempfile.tempdir = tmp_folder
+    pybedtools.set_tempdir(tmp_folder)
 
     # initializing the result table file
     exon_count_file = '%s/%s.exon_counts.txt' % (inputfolder, sample)
