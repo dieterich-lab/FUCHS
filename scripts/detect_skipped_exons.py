@@ -40,16 +40,11 @@ def intersect_introns_with_bedfile(bedfile, reads, coordinates):
     skipped_exons = {}
     for lola in reads:
         for forrest in reads[lola]:
-            print reads[lola][forrest]
             reads[lola][forrest]['intron'] = {}
             breakpoints = reads[lola][forrest]['breakpoint']
-            print breakpoints
             starts = breakpoints[::2]
-            print str(starts)
             ends = breakpoints[1::2]
             for i, start in enumerate(starts):
-                print ('index: %s %s' % (start, i))
-                print ('call: %s %s %s' % (reads[lola][forrest]['reference'], start, ends[i]))
                 intron = pybedtools.BedTool('%s %s %s' % (reads[lola][forrest]['reference'], start, ends[i]),
                                             from_string=True)
                 exons = pybedtools.example_bedtool(bedfile)
