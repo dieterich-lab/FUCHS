@@ -77,7 +77,7 @@ if __name__ == '__main__':
         print('ERROR please specify an accepted annotation platform. Possible options are: refseq or ensembl')
         quit()
 
-    print(skipped_steps)
+    print "The following analysis steps will be skipped: " + '%s' % ', '.join(map(str, skipped_steps))
 
     # Step 1: (optional) if DCC was used, extract circle read names from junction file 
     if not 'step1' in skipped_steps:
