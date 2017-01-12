@@ -6,8 +6,8 @@
 
 # submitted as commandline parameter
 
-Sys.setenv("DISPLAY"=":0")
-options(echo=TRUE) # if you want see commands in output file
+#Sys.setenv("DISPLAY"=":0")
+#options(echo=FALSE) # if you want see commands in output file
 args <- commandArgs(trailingOnly = TRUE)
 
 coverage_file = args[1]
@@ -16,7 +16,8 @@ output_folder = args[2]
 # define functions
 
 smoothing <- function(x){
-  # x being the consevation column smooth conservation track. take average of region centered around current base +/- xBP depending on gene_length
+  # X being the conservation column smooth conservation track.
+  # Take average of region centered around current base +/- xBP depending on gene_length
   w = round(length(x) * 0.01)
   smoothed = rep(NA, length(x))
   for(i in 1:length(x)){
@@ -38,9 +39,14 @@ transcript_name = strsplit(coverage_track, '[.]')[[1]][2]
 
 D = read.table(coverage_file, header = T, as.is = T)
 smoothed = smoothing(D$coverage)
+
 png(paste(output_folder, circle_id, '_',transcript_name, '.png', sep = ''), type = 'cairo')
-  plot(smoothed, type = 'h', col = D$exon, main = paste(circle_id, transcript_name, sep = '\n'), xlab = paste('Exon:', min(D$exon), '- Exon:', max(D$exon)), ylab = 'number of reads')
-dev.off()
-
-
-warnings()
+  plot(smoothed,
+        type = 'h',
+        col = D$exon,
+        main = paste(circle_id, transcript_name, sep = '\n'),
+        xlab = paste('Exon:', min(D$exon), '- Exon:',
+        max(D$exon)),
+        ylab = 'number of reads'
+        )
+invisible(dev.off()) # hide NULL device printout
