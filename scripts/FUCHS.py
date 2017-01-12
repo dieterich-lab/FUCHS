@@ -129,8 +129,10 @@ if __name__ == '__main__':
             if not '%s.coverage_pictures' % (sample) in folders:
                 os.mkdir('%s/%s.coverage_pictures' % (outfolder, sample))
             for f in files:
-                os.system('Rscript make_coverage_picture.R %s/%s.coverage_profiles/%s %s/%s.coverage_pictures/' %
-                          (outfolder, sample, f, outfolder, sample))
+                if f.endswith('.txt'):
+                    print('Generating plot for %s' % f)
+                    os.system('Rscript make_coverage_picture.R %s/%s.coverage_profiles/%s %s/%s.coverage_pictures/' %
+                              (outfolder, sample, f, outfolder, sample))
         else:
             print('You are trying to generate coverage pictures '
                   'without generating coverage profiles, please run step 5')
