@@ -1,7 +1,7 @@
 #! /usr/bin/env Rscript
 
 # let's make sure all packages we need are actually installed
-if (!require("pacman")) install.packages("pacman", repos = "http://cran.de.r-project.org")
+if (!require("pacman")) install.packages("pacman", repos = "http://cran.us.r-project.org")
 pacman::p_load(amap, Hmisc, gplots)
 
 # script to assign relative position to coverage profiles of circles
@@ -9,7 +9,7 @@ pacman::p_load(amap, Hmisc, gplots)
 # include checks if clusters are empty, it should not just break but just omit the plots, make number of centers flexible
 
 options(echo=FALSE) # if you want see commands in output file
-args <- commandArgs(trailingOnly = FALSE)
+args <- commandArgs(trailingOnly = TRUE)
 
 folder = args[1]
 # all coverage profiles in a folder
