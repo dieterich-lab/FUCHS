@@ -335,12 +335,12 @@ if __name__ == '__main__':
     folder = '%s/%s/' % (infolder, sample)
     outfile = '%s/%s_exon_chain_' % (infolder, sample)
 
-    O = open('%s12.bed' % (outfile), 'w')
-    O.write('#bed12\n')
-    O.close()
-    O = open('%s6.bed' % (outfile), 'w')
-    O.write('#bed6\n')
-    O.close()
+    output = open('%s12.bed' % (outfile), 'w')
+    output.write('#bed12\n')
+    output.close()
+    output = open('%s6.bed' % (outfile), 'w')
+    output.write('#bed6\n')
+    output.close()
 
     # Start my pool
     pool = multiprocessing.Pool(num_cpus)
