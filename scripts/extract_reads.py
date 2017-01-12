@@ -36,7 +36,6 @@ def load_alignment(infile, circle_reads, cutoff):
         if i % 1000000 == 0:
             print('%s reads processed' % i)
         if read.qname in circle_reads and read.mapq > cutoff:
-            # print(float(i)/17000000)
             if not read.qname in reads:
                 reads[read.qname] = {}
             reads[read.qname][i] = read
@@ -126,9 +125,6 @@ if __name__ == '__main__':
 
     for f in files:
         if f.split('.')[-1] == 'bam':
-            # this is the old sort syntax of samtools 0.9x
-            # pysam.sort('%s/%s/%s' % (outfolder, sample, f),
-            #            '%s/%s/%s' % (outfolder, sample, f.replace('.bam', '.sorted')))
 
             pysam.sort("-o",
                        '%s/%s/%s' % (outfolder, sample, f.replace('.bam', '.sorted.bam')),
