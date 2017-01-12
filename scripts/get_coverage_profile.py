@@ -79,15 +79,11 @@ def write_exon_count(outfile, exon_count, sample, circle_id,
 def filter_features(bed_features, feature_names):
     """
     """
-    intervals = []
-    tmp = ""
+    intervals = ""
     for interval in bed_features:
         if interval[3] in feature_names:
-            intervals += [interval]
-            tmp += str(interval)
-            print interval
-    print tmp
-    return tmp
+            intervals += str(interval)
+    return intervals
 
 
 def choose_transcript(exon_counts):
@@ -203,7 +199,7 @@ def format_to_bed12(exon_count, transcript, circle_id, number_of_reads, outfile)
                 bed12['06_strand'] = exon_count[t][e]['strand_feature']
                 bed12['11_block_sizes'] += ['%s' % (exon_count[t][e]['length'] - 1)]
                 bed12['12_block_starts'] += ['%s' % (int(exon_count[t][e]['start'] + 1 - circle_id[1]))]
-            print(bed12)
+            # print(bed12)
             # if the exon doesn't start where the circle starts (circle starts in intron)
             if bed12['12_block_starts'][0] > '0':
                 bed12['12_block_starts'] = ['0'] + bed12['12_block_starts']
