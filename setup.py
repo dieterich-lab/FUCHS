@@ -115,13 +115,13 @@ setup(
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
 
-    #TODO: provide entry point for main FUCHS script
-    # entry_points={
-    #     'console_scripts': [
-    #         'DCC=DCC:main'
-    #     ],
-    # },
-    # scripts=[
-    #     'scripts/DCC',
-    # ]
+    entry_points={
+        'console_scripts': [
+            'FUCHS=FUCHS:main'
+        ],
+    },
+
+    scripts=[
+        'scripts/FUCHS',
+    ]
 )
