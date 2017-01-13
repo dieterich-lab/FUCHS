@@ -4,132 +4,102 @@
 # python script, to extract circular reads from a bam file, based on a
 # tab-separated circle_id - reads file and a bam file. writes out circle-specific bam files
 
-# define functions
+# required packages
+import os
+import pysam
+import tempfile
 
-def read_circles(infile):
-    """
-    for each circle, extracts all reads_ids, but also accumulates all circular reads ids independent of circle id.
-    """
-    circle_IDs = {}
-    reads = {}
-    input_file = open(infile)
-    for line in input_file:
-        if not line.startswith('#'):
-            circle_IDs[line.split('\t')[0]] = line.replace('\n', '').split('\t')[1].split(',')[:-1]
-            for current_circle in line.replace('\n', '').split('\t')[1].split(',')[:-1]:
-                reads[current_circle] = 0
-    input_file.close()
-    return circle_IDs, reads
+class extract_reads(object):
+    def __init__(self, reads, mapq, circlefile, bamfile, outputfolder, sample, tmp_folder):
 
+        self.circles = circlefile
+        self.bamfile = bamfile
+        self.outfolder = outputfolder
+        self.sample = sample
+        self.cutoff = reads
+        self.mapq_cutoff = mapq
+        self.tmp_folder = tmp_folder
 
-def load_alignment(infile, circle_reads, cutoff):
-    """
-    loads sample bam file and extracts all circular reads based
-    on read list obtained from read_circles or any given list of read ids.
-    """
-    reads = {}
-    if 'bam' in infile.split('.')[-1]:
-        samfile = pysam.AlignmentFile(bamfile, 'rb')
-    else:
-        samfile = pysam.AlignmentFile(bamfile, 'r')
-    for i, read in enumerate(samfile.fetch()):
-        if i % 1000000 == 0:
-            print('%s reads processed' % i)
-        if read.qname in circle_reads and read.mapq > cutoff:
-            if not read.qname in reads:
-                reads[read.qname] = {}
-            reads[read.qname][i] = read
-    samfile.close()
-    return reads
+    def read_circles(self, infile):
+        """
+        for each circle, extracts all reads_ids, but also accumulates all circular reads ids independent of circle id.
+        """
+        circle_IDs = {}
+        reads = {}
+        input_file = open(infile)
+        for line in input_file:
+            if not line.startswith('#'):
+                circle_IDs[line.split('\t')[0]] = line.replace('\n', '').split('\t')[1].split(',')[:-1]
+                for current_circle in line.replace('\n', '').split('\t')[1].split(',')[:-1]:
+                    reads[current_circle] = 0
+        input_file.close()
+        return circle_IDs, reads
 
 
-def write_circle_bam(reads, circles, cutoff, template, outfolder):
-    """
-    for each circle, writes a bam file containing only reads spanning the
-    circle junction and their mates if mates are present.
-    """
-    samfile = pysam.AlignmentFile(template, 'rb')
-    for circle in circles:
-        if len(circles[circle]) >= cutoff:
-            circle_bam = pysam.AlignmentFile(
-                "%s/%s_%sreads.bam" % (outfolder, circle.replace(':', '_').replace('|', '_'), len(circles[circle])),
-                "wb", template=samfile)
-            for read in circles[circle]:
-                if read in reads:
-                    for part in reads[read]:
-                        circle_bam.write(reads[read][part])
-            circle_bam.close()
-    samfile.close()
-    return
+    def load_alignment(self, infile, circle_reads, cutoff):
+        """
+        loads sample bam file and extracts all circular reads based
+        on read list obtained from read_circles or any given list of read ids.
+        """
+        reads = {}
+        if 'bam' in infile.split('.')[-1]:
+            samfile = pysam.AlignmentFile(self.bamfile, 'rb')
+        else:
+            samfile = pysam.AlignmentFile(self.bamfile, 'r')
+        for i, read in enumerate(samfile.fetch()):
+            if i % 1000000 == 0:
+                print('%s reads processed' % i)
+            if read.qname in circle_reads and read.mapq > cutoff:
+                if not read.qname in reads:
+                    reads[read.qname] = {}
+                reads[read.qname][i] = read
+        samfile.close()
+        return reads
 
 
-# run script
-if __name__ == '__main__':
+    def write_circle_bam(self, reads, circles, cutoff, template, outfolder):
+        """
+        for each circle, writes a bam file containing only reads spanning the
+        circle junction and their mates if mates are present.
+        """
+        samfile = pysam.AlignmentFile(template, 'rb')
+        for circle in circles:
+            if len(circles[circle]) >= cutoff:
+                circle_bam = pysam.AlignmentFile(
+                    "%s/%s_%sreads.bam" % (outfolder, circle.replace(':', '_').replace('|', '_'), len(circles[circle])),
+                    "wb", template=samfile)
+                for read in circles[circle]:
+                    if read in reads:
+                        for part in reads[read]:
+                            circle_bam.write(reads[read][part])
+                circle_bam.close()
+        samfile.close()
+        return
 
-    # required packages
-    import os
-    import pysam
-    import argparse
-    import tempfile
+    def run(self):
 
-    parser = argparse.ArgumentParser(
-        description='Extracts circular reads based on circle_file '
-                    'from the sample.bam and writes them into circle separated bam files.')
+        tempfile.tempdir = self.tmp_folder  # set global tmp dir
 
-    # input
-    parser.add_argument('circlefile', metavar='sample_circleIDs.txt',
-                        help='tab separated file chr:start_end(tab)read1,read2,read3.')
-    parser.add_argument('bamfile', metavar='sample.bam',
-                        help='bamfile containing chimeric reads, linear reads may be in it but are not required.')
-    # output
-    parser.add_argument('outputfolder', metavar='folder',
-                        help='outfolder, there will be a subfolder for the sample '
-                             'containing a bam file for each circle.')
-    parser.add_argument('sample', metavar='sample_name', help='sample_name to title every thing.')
+        circle_info, circle_reads = self.read_circles(self.circles)
+        print('DONE reading circles, found %s circles' % (len(circle_info)))
+        reads = self.load_alignment(self.bamfile, circle_reads, self.mapq_cutoff)
+        print('DONE extracting circular reads')
+        folders = os.listdir(self.outfolder)
+        if not self.sample in folders:
+            os.mkdir('%s/%s' % (self.outfolder, self.sample))
+        self.write_circle_bam(reads, circle_info, self.cutoff, self.bamfile, '%s/%s' % (self.outfolder, self.sample))
+        print('DONE writing circle bam files\n')
+        files = os.listdir('%s/%s' % (self.outfolder, self.sample))
+        print('%s circles passed your thresholds of at least %s reads with at least a mapq of %s\n\n' % (
+            len(files), self.cutoff, self.mapq_cutoff))
 
-    # options
-    parser.add_argument('-r', dest='reads', default=5, type=int,
-                        help='Circle has to have at least <r> reads to be analysed.')
-    parser.add_argument('-q', dest='mapq', default=3, type=int,
-                        help='MAPQ cutoff, only reads passing this threshold will be written to circle bamfile.')
-    parser.add_argument('--tmp', dest='tmp_folder', default='.',
-                        help='temporary folder to store temporary files generated by pybedtools.')
+        for f in files:
+            if f.split('.')[-1] == 'bam':
 
-    args = parser.parse_args()
+                pysam.sort("-o",
+                           '%s/%s/%s' % (self.outfolder, self.sample, f.replace('.bam', '.sorted.bam')),
+                           '%s/%s/%s' % (self.outfolder, self.sample, f)
+                           )
 
-    # parse arguments
-    circles = args.circlefile
-    bamfile = args.bamfile
-    outfolder = args.outputfolder
-    sample = args.sample
-    cutoff = args.reads
-    mapq_cutoff = args.mapq
-    tmp_folder = args.tmp_folder
-
-    # set temp folder. folder needs to exist
-    tempfile.tempdir = tmp_folder
-
-    circle_info, circle_reads = read_circles(circles)
-    print('DONE reading circles, found %s circles' % (len(circle_info)))
-    reads = load_alignment(bamfile, circle_reads, mapq_cutoff)
-    print('DONE extracting circular reads')
-    folders = os.listdir(outfolder)
-    if not sample in folders:
-        os.mkdir('%s/%s' % (outfolder, sample))
-
-    write_circle_bam(reads, circle_info, cutoff, bamfile, '%s/%s' % (outfolder, sample))
-    print('DONE writing circle bam files\n')
-    files = os.listdir('%s/%s' % (outfolder, sample))
-    print('%s circles passed your thresholds of at least %s reads with at least a mapq of %s\n\n' % (
-        len(files), cutoff, mapq_cutoff))
-
-    for f in files:
-        if f.split('.')[-1] == 'bam':
-
-            pysam.sort("-o",
-                       '%s/%s/%s' % (outfolder, sample, f.replace('.bam', '.sorted.bam')),
-                       '%s/%s/%s' % (outfolder, sample, f)
-                       )
-
-            pysam.index('%s/%s/%s' % (outfolder, sample, f.replace('.bam', '.sorted.bam')))
-            os.system('rm %s/%s/%s' % (outfolder, sample, f))
+                pysam.index('%s/%s/%s' % (self.outfolder, self.sample, f.replace('.bam', '.sorted.bam')))
+                os.system('rm %s/%s/%s' % (self.outfolder, self.sample, f))

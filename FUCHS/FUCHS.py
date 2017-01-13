@@ -2,7 +2,7 @@
 
 # main script to run FUCHS
 
-if __name__ == '__main__':
+def main():
 
     # required packages
     import os
@@ -81,37 +81,51 @@ if __name__ == '__main__':
 
     # Step 1: (optional) if DCC was used, extract circle read names from junction file 
     if not 'step1' in skipped_steps:
-        circles = "%s.reads.txt" % junctionfile
-        if not mates == 'none':
-            os.system('python get_readnames_from_DCC.py -m %s %s %s' % (mates, circle_ids, junctionfile))
-        else:
-            os.system('python get_readnames_from_DCC.py %s %s' % (circle_ids, junctionfile))
 
+        circles = "%s.reads.txt" % junctionfile
+        import get_readnames_from_DCC as get_readnames
+        names = get_readnames.get_readnames_from_DCC(mates, circle_ids, junctionfile)
+        names.run()
+
+    # Step2 : extract circle reads from sample bam file
     if not 'step2' in skipped_steps:
-        # Step2 : extract circle reads from sample bam file
-        os.system('python extract_reads.py -r %s -q %s %s %s %s %s --tmp %s' % (
-        cutoff_reads, cutoff_mapq, circles, bamfile, outfolder, sample, tmp_folder))
+
+        import extract_reads as extract_reads
+        er = extract_reads.extract_reads(cutoff_reads, cutoff_mapq, circles, bamfile, outfolder, sample, tmp_folder)
+        er.run()
 
     # Step3 : (optional) get information about possibly rolling circles 
     if not 'step3' in skipped_steps:
-        os.system('python get_mate_information.py -p %s -s %s -a %s %s/%s %s/%s.mate_status.txt --tmp %s' %
-                  (platform, split_character, bedfile, outfolder, sample, outfolder, sample, tmp_folder))
+
+        import get_mate_information as mateinformation
+        mi = mateinformation.mate_information(platform, split_character, bedfile, outfolder, sample, tmp_folder)
+        mi.run()
 
     # Step4 : (optional) find exon skipping events
     if not 'step4' in skipped_steps:
-        os.system('python detect_skipped_exons.py %s/%s %s %s/%s.skipped_exons.txt --tmp %s' %
-                  (outfolder, sample, bedfile, outfolder, sample, tmp_folder))
+
+        import detect_skipped_exons as skipped_exons
+        se = skipped_exons.detect_skipped_exons(outfolder, sample, bedfile, tmp_folder, platform)
+        se.run()
 
     # Step5 : (optional) identify different circles within the same host gene
     if not 'step5' in skipped_steps:
-        os.system('python detect_splicing_variants.py -s %s -p %s %s %s %s/%s.alternative_splicing.txt --tmp %s' %
-                  (split_character, platform, circles, bedfile, outfolder, sample, tmp_folder))
+
+        import detect_splicing_variants as splicing_variants
+        sv = splicing_variants.detect_splicing_variants(split_character, platform, circles, bedfile,
+                                                        outfolder, sample, tmp_folder)
+        sv.run()
 
     # Step6 : (optional) generate coverage profile for each circle
     # (one transcript per gene, best if most fitting transcript)
     if not 'step6' in skipped_steps:
-        os.system('python get_coverage_profile.py -e %s -s %s -p %s %s %s %s --tmp %s' %
-                  (exon_index, split_character, platform, bedfile, outfolder, sample, tmp_folder))
+        # os.system('python get_coverage_profile.py -e %s -s %s -p %s %s %s %s --tmp %s' %
+        #           (exon_index, split_character, platform, bedfile, outfolder, sample, tmp_folder))
+
+        import get_coverage_profile as coverage_profile
+        sv = coverage_profile.get_coverage_profile(exon_index, split_character, platform, bedfile,
+                                                   outfolder, sample, tmp_folder)
+        sv.run()
 
     # Step7 : (optional, requires step 5)
     if not 'step7' in skipped_steps:
@@ -136,3 +150,6 @@ if __name__ == '__main__':
         else:
             print('You are trying to generate coverage pictures '
                   'without generating coverage profiles, please run step 5')
+
+if __name__ == '__main__':
+    main()
