@@ -1,4 +1,7 @@
 # Created by .ignore support plugin (hsz.mobi)
+
+.idea/
+
 ### R template
 # History files
 .Rhistory
@@ -59,6 +62,7 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+data/output/*
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
