@@ -86,7 +86,8 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
         'pysam>=0.9.0',
-        'pybedtools>=0.7.8'
+        'pybedtools>=0.7.8',
+        'numpy>=0.8.2'
     ],
 
     # List additional groups of dependencies here (e.g. development
