@@ -102,7 +102,8 @@ setup(
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
     package_data={
-        'FUCHS': ['data/'],
+        'FUCHS': ['data/*'],
+        'FUCHS': ['scripts/*.R'],
     },
 
     # Although 'package_data' is the preferred approach, in some case you may
@@ -115,6 +116,8 @@ setup(
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
 
+    zip_safe=False,
+
     entry_points={
         'console_scripts': [
             'FUCHS=FUCHS:main'
@@ -123,5 +126,8 @@ setup(
 
     scripts=[
         'scripts/FUCHS',
+        'scripts/summarized_coverage_profiles.R',
+        'scripts/make_coverage_picture.R',
+
     ]
 )

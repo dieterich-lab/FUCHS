@@ -1,4 +1,5 @@
 include README.rst
 include LICENSE
 include DESCRIPTION.rst
-recursive-include data/
+recursive-include data *
+recursive-include scripts *.R

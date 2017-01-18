@@ -130,7 +130,8 @@ def main():
     # Step7 : (optional, requires step 5)
     if not 'step7' in skipped_steps:
         if not 'step6' in skipped_steps:
-            os.system('Rscript summarized_coverage_profiles.R %s/%s.coverage_profiles' % (outfolder, sample))
+
+            os.system('summarized_coverage_profiles.R %s/%s.coverage_profiles' % (outfolder, sample))
         else:
             print('You are trying cluster the coverage profiles without '
                   'generating coverage profiles first, please run step 5')
@@ -145,7 +146,7 @@ def main():
             for f in files:
                 if f.endswith('.txt'):
                     print('Generating plot for %s' % f)
-                    os.system('Rscript make_coverage_picture.R %s/%s.coverage_profiles/%s %s/%s.coverage_pictures/' %
+                    os.system('make_coverage_picture.R %s/%s.coverage_profiles/%s %s/%s.coverage_pictures/' %
                               (outfolder, sample, f, outfolder, sample))
         else:
             print('You are trying to generate coverage pictures '
