@@ -14,20 +14,7 @@ Installation
 
 FUCHS dependes on **bedtools (> 2.25.0)** and **samtools (> 1.3.1)** and **Python (> 2.7; pysam=0.9.1.4, pybedtools=0.7.8, numpy=1.11.2)** and **R(> 3.2.0; amap, Hmisc, gplots)**. All Python an R dependencies will install automatically when installing FUCHS. Please make sure to have the correct versions of bedtools and samtools in your PATH.
 
-You can clone the scripts from git using git clone:
-
-1) Download repository `FUCHS <https://github.com/dieterich-lab/FUCHS/archive/master.zip>`_
-
-.. code-block:: bash
-
- $ tar -xvf FUCHS-<version>.tar.gz
-
- $ cd FUCHS-<version>
-
- $ python setup.py install --user
-
-
-2) Git clone
+Clone the repository and install FUCHS using setup.py:
 
 .. code-block:: bash
 
@@ -37,9 +24,8 @@ You can clone the scripts from git using git clone:
   
   $ python setup.py install --user
 
-3) Check the installation:
+  # Check the installation:
 
-.. code-block:: bash
   $ FUCHS --help
   
 ========
@@ -140,6 +126,7 @@ The output of DCC include: CircRNACount, CircCoordinates, LinearCount and CircSk
 4. Run FUCHS to start the pipeline which will extract reads, check mate status, detect alternative splicing events, classify different isoforms, generate coverage profiles and cluster circRNAs based on coverage profiles
 
 .. code-block:: bash
+  
   $ FUCHS -r 4 -q 2 -p refseq -e 3 -c CircRNACount -m hek293.mate1.Chimeric.out.junction.fixed -j hek293.mate2.Chimeric.out.junction.fixed mock hek293.sorted.bam hg38.refseq.bed FUCHS/ hek293
   
   # if you used BWA/CIRI you can skip -c, -m, and -j, specify to skip the first step -sS step1 and specify the circIDs file
