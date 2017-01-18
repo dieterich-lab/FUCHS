@@ -12,20 +12,36 @@ coverage profile. These results can be used to identify potential false positive
 Installation
 =============
 
-FUCHS dependes on pysam, pybedtools, numpy and R (amap, Hmisc, gplots).
-
-Right now FUCHS is an assembly of scripts which is called through one main scripts executing all steps. No installation is neccessary right now!
+FUCHS dependes on **bedtools (> 2.25.0)** and **samtools (> 1.3.1)** and **Python (> 2.7; pysam=0.9.1.4, pybedtools=0.7.8, numpy=1.11.2)** and **R(> 3.2.0; amap, Hmisc, gplots)**. All Python an R dependencies will install automatically when installing FUCHS. Please make sure to have the correct versions of bedtools and samtools in your PATH.
 
 You can clone the scripts from git using git clone:
+
+1) Download repository `FUCHS <https://github.com/dieterich-lab/FUCHS/archive/master.zip>`_
+
+.. code-block:: bash
+
+ $ tar -xvf FUCHS-<version>.tar.gz
+
+ $ cd FUCHS-<version>
+
+ $ python setup.py install --user
+
+
+2) Git clone
 
 .. code-block:: bash
 
   $ git clone git@github.com:dieterich-lab/FUCHS.git
   
-  $ cd FUCHS/scripts
+  $ cd FUCHS
   
-  $ python FUCHS.py [options] <sample_circleIDs> <sample.bam> <feature.bed> <PATH/to/output/folder> <sample_name>
+  $ python setup.py install --user
 
+3) Check the installation:
+
+.. code-block:: bash
+  $ FUCHS --help
+  
 ========
 Usage
 ========
@@ -76,21 +92,13 @@ Note that STARlong is not mapping chimeric reads correctly.
 
   Second (only if you have paired end sequencing data), "mate1" and "mate2" files. As with the "samplesheet" file, you specify where your mate1 and mate2 separately mapped chimeric.junction.out files are.
 
-  You can find a example of these files for HEK293 data at:
-  
-.. code-block:: bash
-
-  $ <FUCHS directory>/testdata/dcc/samplesheet # Mates jointly mapped chimeric.junction.out files
-  $ <FUCHS directory>/testdata/dcc/mate1 # Mate1 independently mapped chimeric.junction.out files
-  $ <FUCHS directory>/testdata/dcc/mate1 # Mate2 independently mapped chimeric.junction.out files
-
 - After all the preparation steps, you can now run DCC for circRNA detection. 
 
 
 .. code-block:: bash
 
   # Call DCC to detect circRNAs, using HEK293 data as example.
-  $ DCC @samplesheet -mt1 @mate1 -mt2 @mate2 -D -R [Repeats].gtf -an [Annotation].gtf -Pi -F -M -Nr 5 6 -fg -G -A [Reference].fa
+  $ DCC @samplesheet -mt1 @mate1 -mt2 @mate2 -D -R [Repeats].gtf -an [Annotation].gtf -Pi -F -M -Nr 2 2 -fg -G -A [Reference].fa
 
   # Details of parameters please refer to the help page of DCC:
   $ DCC -h
@@ -125,16 +133,25 @@ The output of DCC include: CircRNACount, CircCoordinates, LinearCount and CircSk
   $ samtools index hek293.1.sorted.bam
   $ samtools index hek293.2.sorted.bam
    
-  $samtools merge hek293.sorted.bam hek293.1.sorted.bam hek293.2.sorted.bam
+  $ samtools merge hek293.sorted.bam hek293.1.sorted.bam hek293.2.sorted.bam
    
-  $samtools index hek293.sorted.bam
+  $ samtools index hek293.sorted.bam
 
-4. Run FUCHS.py to start the pipeline which will extract reads, check mate status, detect alternative splicing events, classify different isoforms, generate coverage profiles and cluster circRNAs based on coverage profiles
+4. Run FUCHS to start the pipeline which will extract reads, check mate status, detect alternative splicing events, classify different isoforms, generate coverage profiles and cluster circRNAs based on coverage profiles
 
 .. code-block:: bash
-  $ python FUCHS.py -r 2 -q 2 -p refseq -e 3 -c CircRNACount -m hek293.mate1.Chimeric.out.junction.fixed -j hek293.mate2.Chimeric.out.junction.fixed mock hek293.sorted.bam hg38.refseq.bed FUCHS/ hek293
+  $ FUCHS -r 4 -q 2 -p refseq -e 3 -c CircRNACount -m hek293.mate1.Chimeric.out.junction.fixed -j hek293.mate2.Chimeric.out.junction.fixed mock hek293.sorted.bam hg38.refseq.bed FUCHS/ hek293
   
   # if you used BWA/CIRI you can skip -c, -m, and -j, specify to skip the first step -sS step1 and specify the circIDs file
+
+5. Run the additional module guided_denovo_circle_structure_parallel.py to obtain a more refined circle reconstruction based on intron signals. The circRNA seperated bamfiles (step 2) are the only input needed for the module. If you supply an annotation file, unsupported exons will be reported with a score of 0, if you do not supply an annotation file, unsupported will not be reported.
+
+.. code-block:: bash
+  
+  $ python guided_denovo_circle_structure_parallel.py -c 18 -A hg38.RefSeq.exons.bed FUCHS/ hek293
+  
+  # FUCHS/ corresponds to the output directory of the FUCHS pipeline
+  # hek293 corresponds to your sample name, just as specified for the pipeline
 
 **Finished!!!**
 
@@ -287,6 +304,14 @@ circle_id               transcript_id   skipped_exon            intron          
 6_161034259_161049979   NM_001291958    6:161049332-161049852   set\(\[\(\'6\', 161049332, 161049852\)\]\)      MISEQ:136:000000000-ACBC6:1:1113:25288:9067,MISEQ:136:000000000-ACBC6:1:2116:11815:3530                                                  2               5
 =====================   ==============  ======================  =============================================   ======================================================================================================================================   =============   ===========    
 
+
+--------------------
+
+**hek293_exon_chain_inferred_12.bed:**
+
+--------------------
+
+**hek293_exon_chain_inferred_6.bed**
 
 --------------------
 
