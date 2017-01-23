@@ -1,53 +1,62 @@
-*****************************************
+########################################################
 FUCHS - FUll circular RNA CHaracterization from RNA-Seq
-*****************************************
-FUCHS is a python pipeline desigend to fully characterize circular RNAs. It uses a list of circular RNAs and reads spanning the back-splice junction as well 
+########################################################
+FUCHS is a python pipeline designed to fully characterize circular RNAs. It uses a list of circular RNAs and reads spanning the back-splice junction as well
 as a BAM file containing the mapping of all reads (alternatively of all chimeric reads).
 
-The reads from one circle are extracted by FUCHS and saved in an individual BAM file. Based on these BAM files, FUCHS will detect alternative splicing within the same 
+The reads from one circle are extracted by FUCHS and saved in an individual BAM file. Based on these BAM files, FUCHS will detect alternative splicing within the same
 circle boundaries, summarize different circular isoforms from the same host-gene and generates coverage plots for each circle. It will also cluster circles based on their
 coverage profile. These results can be used to identify potential false positive circles.
 
-=============
+*************
 Installation
-=============
+*************
 
-FUCHS dependes on **bedtools (> 2.25.0)** and **samtools (> 1.3.1)** and **Python (> 2.7; pysam=0.9.1.4, pybedtools=0.7.8, numpy=1.11.2)** and **R(> 3.2.0; amap, Hmisc, gplots)**. All Python an R dependencies will install automatically when installing FUCHS. Please make sure to have the correct versions of bedtools and samtools in your PATH.
+FUCHS dependes on **bedtools (>= 2.25.0)** and **samtools (>= 1.3.1)** and **Python (> 2.7; pysam>=0.9.1.4, pybedtools>=0.7.8, numpy>=1.11.2)** and **R(> 3.2.0; amap, Hmisc, gplots)**. All Python an R dependencies will be installed automatically when installing FUCHS. Please make sure to have the correct versions of bedtools and samtools in your $PATH.
 
 Clone the repository and install FUCHS using setup.py:
 
 .. code-block:: bash
 
   $ git clone git@github.com:dieterich-lab/FUCHS.git
-  
+
   $ cd FUCHS
-  
+
   $ python setup.py install --user
+
+  # This will install a FUCHS binary in $HOME/.local/bin/
+  # make sure this folder is in your $PATH
 
   # Check the installation:
 
   $ FUCHS --help
-  
-========
+
+*************
 Usage
-========
+*************
 To characterize circRNAs from RNA-seq data you have to:
 
 1. Map RNAseq data from quality checked fastq files with either STAR, BWA, TopHat-Fusion.
 
 2. Detect circRNAs using DCC, CIRI, CIRCfinder or CIRCexplorer depending on the program you used for mapping.
 
-3. Run FUCHS (right now only the combination STAR-DCC has been tested, the rest is under development.)
+3. Run FUCHS (right now only the combination STAR + DCC has been tested; other setups are under development)
 
-========================
+======================
 Step by step tutorial
-========================
-In this tutorial I will be using HEK293 data (published with the paper?) and use STAR with DCC to detect circular RNAs
+======================
+In this tutorial we will be using HEK293 data available in this repository and use STAR with DCC to detect circular RNAs
 
-1. Map RNA-seq data with STAR (Dobin et al., 2013). Note that --alignSJoverhangMin and --chimJunctionOverhangMin should use the same value, to make the circRNA expression and linear gene expression level comparable. 
-Note that STARlong is not mapping chimeric reads correctly. 
 
-* Do pairs joined mapping first. If your data are paired end, do additional mates separate mapping (not mandatory, but will increase the sensitivity of DCC detection, because it collect small circRNAs which appear with one chimeric junction point at each read mate). If the data is single end, only one mapping step is needed. In this case, we have PE sequencing data.
+1. Mapping of RNA-Seq data
+---------------------------
+
+Map RNA-seq data with `STAR <https://github.com/alexdobin/STAR>`_ (Dobin et al., 2013). Note that --alignSJoverhangMin and --chimJunctionOverhangMin should use the same value, to make the circRNA expression and linear gene expression level comparable.
+Note that STARlong is not mapping chimeric reads correctly.
+
+
+
+* Note: The joined pair mapping should be run first. If the data are paired end, two additional separate mate mappings are recommended This step is not mandatory, but will increase the sensitivity of DCC detection, because it collect small circRNAs which appear with one chimeric junction point at each read mate. If the data is single end, only one mapping step is needed. In this case, PE sequencing data was used.
 
 .. code-block:: bash
 
@@ -56,102 +65,174 @@ Note that STARlong is not mapping chimeric reads correctly.
   $ STAR --runThreadN 10   --genomeDir [genome]  --outSAMtype BAM Unsorted --readFilesIn Sample1_1.fastq.gz  Sample1_2.fastq.gz   --readFilesCommand zcat  --outFileNamePrefix [sample prefix] --outReadsUnmapped Fastx  --outSJfilterOverhangMin 15 15 15 15 --alignSJoverhangMin 15 --alignSJDBoverhangMin 15 --outFilterMultimapNmax 20   --outFilterScoreMin 1   --outFilterMatchNmin 1   --outFilterMismatchNmax 2  --chimSegmentMin 15    --chimScoreMin 15   --chimScoreSeparation 10  --chimJunctionOverhangMin 15
 
 
-* (Skip when you have single end data). Mates separate mapping. Be careful that, what you define as first mate (mate1) should also appears the first in the joined mapping. In this case, SamplePairedRead_1.fastq.gz is the first mate which came first above.
+
+1.1. Mates separate mapping (optional for PE data)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Note: the mate assignments should be consistent throughout the mapping and circular RNA detection process. In the following case, SamplePairedRead_1.fastq.gz is the first mate which also was the first mate in the STAR call.
 
 .. code-block:: bash
 
-  # Make a directory for mate1
+  # Create a directory for mate1 and mate 2
+  $ mkdir mate2
   $ mkdir mate1
+
+  $ cd mate1
   $ STAR --runThreadN 10   --genomeDir [genome]  --outSAMtype None --readFilesIn Sample1_1.fastq.gz  --readFilesCommand zcat   --outFileNamePrefix [sample prefix] --outReadsUnmapped Fastx  --outSJfilterOverhangMin 15 15 15 15 --alignSJoverhangMin 15 --alignSJDBoverhangMin 15 --seedSearchStartLmax 30  --outFilterMultimapNmax 20   --outFilterScoreMin 1   --outFilterMatchNmin 1   --outFilterMismatchNmax 2  --chimSegmentMin 15    --chimScoreMin 15   --chimScoreSeparation 10  --chimJunctionOverhangMin 15
 
-  $ cd ..
-  $ mkdir mate2
-  # Do the same mapping as mate1 for mate2
+  $ cd ../mate2/
+  $ STAR --runThreadN 10   --genomeDir [genome]  --outSAMtype None --readFilesIn Sample1_2.fastq.gz  --readFilesCommand zcat   --outFileNamePrefix [sample prefix] --outReadsUnmapped Fastx  --outSJfilterOverhangMin 15 15 15 15 --alignSJoverhangMin 15 --alignSJDBoverhangMin 15 --seedSearchStartLmax 30  --outFilterMultimapNmax 20   --outFilterScoreMin 1   --outFilterMatchNmin 1   --outFilterMismatchNmax 2  --chimSegmentMin 15    --chimScoreMin 15   --chimScoreSeparation 10  --chimJunctionOverhangMin 15
 
-2. Detect circRNAs from chimeric.out.junction files with DCC
+2. Detection of circRNAs from chimeric.out.junction files with DCC
+-------------------------------------------------------------------
 
-- It is strongly recommended to specify a repetitive region file in GTF format for filtering. You can obtain this file through UCSC table browser: http://genome.ucsc.edu/cgi-bin/hgTables. Select your genome, select group as "Repeats" or "Variation and Repeats". For the track, I recommend chose all possible repeats and combine the results. **NOTE**: the output file needs to comply with GTF format specification.
+Acquiring suitable GTF files for repeat masking
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- It is strongly recommended to specify a repetitive region file in GTF format for filtering.
 
-- Prepare path files to specify where is your chimeric.junction.out files are. 
+- A suitable file can for example be obtained through the `UCSC table browser <http://genome.ucsc.edu/cgi-bin/hgTables>`_ . After choosing the genome, a group like **Repeats** or **Variation and Repeats** has to be selected. For the track, we recommend to choose **RepeatMasker** together with **Simple Repeats** and combine the results afterwards.
 
-  First, "samplesheet" file, in which you specify your chimeric.out.junction file's absolute paths (mates joined mapping chimeric.out.junction files, for paired end data), one line per sample. 
+- **Note**: the output file needs to comply with the GTF format specification. Additionally it may be the case that the names of chromosomes from different databases differ, e.g. **1** for chromosome 1 from ENSEMBL compared to **chr1** for chromosome 1 from UCSC. Since the chromosome names are important for the correct functionality of DCC a sample command for converting the identifiers may be ``sed -i 's/^chr//g' your_repeat_file.gtf``
 
-  Second (only if you have paired end sequencing data), "mate1" and "mate2" files. As with the "samplesheet" file, you specify where your mate1 and mate2 separately mapped chimeric.junction.out files are.
 
-- After all the preparation steps, you can now run DCC for circRNA detection. 
+Preparation of files containing the paths to required ``chimeric.out.junction`` files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+* ``samplesheet`` file, containing the paths to the jointly mapped ``chimeric.out.junction`` files
 
+ .. code-block:: bash
+
+  $ cat samplesheet
+  /path/to/STAR/sample_1/joint_mapping/chimeric.out.junction
+
+* ``mate1`` file, containing the paths to ``chimeric.out.junction`` files of the separately mapped first read of paired-end data
+
+ .. code-block:: bash
+
+  $ cat mate2
+  /path/to/STAR/sample_1_mate1/joint_mapping/chimeric.out.junction
+
+
+
+* ``mate2`` file, containing the paths to ``chimeric.out.junction`` files of the separately mapped first read of paired-end data
+
+ .. code-block:: bash
+
+  $ cat mate2
+  /path/to/STAR/sample_1_mate2/joint_mapping/chimeric.out.junction
+
+
+Running DCC
+^^^^^^^^^^^^
+After performing all preparation steps DCC can now be started:
 
 .. code-block:: bash
 
   # Call DCC to detect circRNAs, using HEK293 data as example.
-  $ DCC @samplesheet -mt1 @mate1 -mt2 @mate2 -D -R [Repeats].gtf -an [Annotation].gtf -Pi -F -M -Nr 2 2 -fg -G -A [Reference].fa
 
-  # Details of parameters please refer to the help page of DCC:
+  $ DCC @samplesheet \ # @ is generally used to specify a file name
+        -mt1 @mate1 \ # mate1 file containing the mate1 independently mapped chimeric.junction.out files
+        -mt2 @mate2 \ # mate2 file containing the mate1 independently mapped chimeric.junction.out files
+        -D \ # run in circular RNA detection mode
+        -R [Repeats].gtf \ # regions in this GTF file are masked from circular RNA detection
+        -an [Annotation].gtf \ # annotation is used to assign gene names to known transcripts
+        -Pi \ # run in paired independent mode, i.e. use -mt1 and -mt2
+        -F \ # filter the circular RNA candidate regions
+        -M \ # filter out candidates from mitochondrial chromosomes
+        -Nr 5 6 \ minimum number of replicates the candidate is showing in [1] and minimum count in the replicate [2]
+        -fg \ # candidates are not allowed to span more than one gene
+        -G \ # also run host gene expression
+        -A [Reference].fa \ # name of the fasta genome reference file; must be indexed, i.e. a .fai file must be present
+
+  # For single end, non-stranded data:
+  $ DCC @samplesheet -D -R [Repeats].gtf -an [Annotation].gtf -F -M -Nr 5 6 -fg -G -A [Reference].fa
+
+  $ DCC @samplesheet -mt1 @mate1 -mt2 @mate2 -D -S -R [Repeats].gtf -an [Annotation].gtf -Pi -F -M -Nr 5 6 -fg
+
+  # For details on the parameters please refer to the help page of DCC:
   $ DCC -h
 
-By default, DCC assume the data are stranded, for non-stranded data, use -N flag.
-NOTE: -F flag is mandatory, if you want to filter on the results. All filtering steps are not mandatory, but strongly recommended.
+**Notes:**
 
---------------------
+* By default, DCC assumes that the data is stranded. For non-stranded data the ``-N`` flag should be used.
 
-The output of DCC include: CircRNACount, CircCoordinates, LinearCount and CircSkipJunctions.
+* Although not mandatory, we strongly recommend to the ``-F`` filtering step
 
-**CircRNACount:** a table containing read counts for circRNAs detected. First three columns are chr, circRNA start, circRNA end. From fourth column on are the circRNA read counts, one sample per column, shown in the order given in your samplesheet.
+Output files generated by DCC
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**CircCoordinates:** CircRNA annotation in BED format. The columns are chr, start, end, genename, junctiontype (come from STAR, 1 for GT/AG, 2 for CT/AC), strand, circRNA region (startregion-endregion), overall regions (the genomic features circRNA coordinates interval covers).
+The output of DCC consists of the following four files: CircRNACount, CircCoordinates, LinearCount and CircSkipJunctions.
 
-**LinearCount:** host gene expression count table, same setup with CircRNACount file.
+- **CircRNACount:** a table containing read counts for circRNAs detected. First three columns are chr, circRNA start, circRNA end. From fourth column on are the circRNA read counts, one sample per column, shown in the order given in your samplesheet.
 
-**CircSkipJunctions:** CircSkip junctions. First three columns are the same with LinearCount/CircRNACount, the rest columns are circSkip junctions found for each sample. circSkip junction shows in the format: chr:start-end:count (chr1:1787-6949:10 for example. It's possible that for one circRNA multiple circSkip junctions are found, because circRNA possible come from multiple RNA isoforms. In this case, multiple circSkip junctions are delimited with semicolon). 0 implies no circSkip junction found for this circRNA.
+- **CircCoordinates:** circular RNA annotations in BED format. The columns are chr, start, end, genename, junctiontype (based on STAR; 0: non-canonical; 1: GT/AG, 2: CT/AC, 3: GC/AG, 4: CT/GC, 5: AT/AC, 6: GT/AT), strand, circRNA region (startregion-endregion), overall regions (the genomic features circRNA coordinates interval covers).
 
------------------------------------
+- **LinearCount:** host gene expression count table, same setup with CircRNACount file.
 
-3. Merge mate1.chimeric.sam and mate2.chimeric.sam files for FUCHS (This is not neccessary if circles were detected using BWA/CIRI)
+- **CircSkipJunctions:** circSkip junctions. The first three columns are the same as in LinearCount/CircRNACount, the following columns represent the circSkip junctions found for each sample. circSkip junctions are given as chr:start-end:count, e.g. chr1:1787-6949:10. It is possible that for one circRNA multiple circSkip junctions are found due to the fact the the circular RNA may arise from different isoforms. In this case, multiple circSkip junctions are delimited with semicolon. A 0 implies that no circSkip junctions have been found for this circRNA.
+
+
+3. Prepare input data for FUCHS
+-------------------------------------------------------------------
+
+The files ``mate1.chimeric.sam`` and ``mate2.chimeric.sam`` files for FUCHS have to be merged (not necessary if circles were detected using BWA/CIRI)
 
 .. code-block:: bash
 
   $ samtools view -Sb -o hek293.1 hek293.1/Chimeric.out.sam
   $ samtools view -Sb -o hek293.2 hek293.2/Chimeric.out.sam
-  
+
   $ samtools sort hek293.1 hek293.1.sorted
   $ samtools sort hek293.2 hek293.2.sorted
-   
+
   $ samtools index hek293.1.sorted.bam
   $ samtools index hek293.2.sorted.bam
-   
+
   $ samtools merge hek293.sorted.bam hek293.1.sorted.bam hek293.2.sorted.bam
-   
+
   $ samtools index hek293.sorted.bam
 
-4. Run FUCHS to start the pipeline which will extract reads, check mate status, detect alternative splicing events, classify different isoforms, generate coverage profiles and cluster circRNAs based on coverage profiles
+
+
+4. Running FUCHS
+-------------------------------------------------------------------
+
+Run FUCHS to start the pipeline which will extract reads, check mate status, detect alternative splicing events, classify different isoforms, generate coverage profiles and cluster circRNAs based on coverage profiles
 
 .. code-block:: bash
-  
+
+  # if BWA/CIRI was used, -c, -m, and -j may be skipped
+  # specify to skip the first step -sS step1 and specify the circIDs file
+
   $ FUCHS -r 4 -q 2 -p refseq -e 3 -c CircRNACount -m hek293.mate1.Chimeric.out.junction.fixed -j hek293.mate2.Chimeric.out.junction.fixed mock hek293.sorted.bam hg38.refseq.bed FUCHS/ hek293
-  
-  # if you used BWA/CIRI you can skip -c, -m, and -j, specify to skip the first step -sS step1 and specify the circIDs file
 
-5. Run the additional module guided_denovo_circle_structure_parallel.py to obtain a more refined circle reconstruction based on intron signals. The circRNA seperated bamfiles (step 2) are the only input needed for the module. If you supply an annotation file, unsupported exons will be reported with a score of 0, if you do not supply an annotation file, unsupported will not be reported.
+
+5. Optional FUCHS modules
+---------------------------
+
+Run the additional module guided_denovo_circle_structure_parallel.py to obtain a more refined circle reconstruction based on intron signals. The circRNA seperated bamfiles (step 2) are the only input needed for the module. If you supply an annotation file, unsupported exons will be reported with a score of 0, if you do not supply an annotation file, unsupported will not be reported.
 
 .. code-block:: bash
-  
+
   $ python guided_denovo_circle_structure_parallel.py -c 18 -A hg38.RefSeq.exons.bed FUCHS/ hek293
-  
+
   # FUCHS/ corresponds to the output directory of the FUCHS pipeline
   # hek293 corresponds to your sample name, just as specified for the pipeline
 
-**Finished!!!**
 
-========================================================================
-INPUT
-========================================================================
-**circIDs:** 
+**That's all folks**
+
+
+*********************
+Required input data
+*********************
+
+**circIDs:**
 
 ==================== ==========================================================================================
- circID               read1,read2,read3                                                                        
+ circID               read1,read2,read3
 ==================== ==========================================================================================
- 1:3740233\|3746181  MISEQ:136:000000000-ACBC6:1:2107:10994:20458,MISEQ:136:000000000-ACBC6:1:1116:13529:8356 
- 1:8495063\|8614686  MISEQ:136:000000000-ACBC6:1:2118:9328:9926                                               
+ 1:3740233\|3746181  MISEQ:136:000000000-ACBC6:1:2107:10994:20458,MISEQ:136:000000000-ACBC6:1:1116:13529:8356
+ 1:8495063\|8614686  MISEQ:136:000000000-ACBC6:1:2118:9328:9926
 ==================== ==========================================================================================
 
 
@@ -159,7 +240,7 @@ The first column contains the circle id formated as folllowed **chr:start|end**.
 
 **bamfile:** Alignment file produced by any mapper. This file must contain all chimerically mapped reads and may contain also linearly mapped reads.
 
-**bedfile:** 
+**bedfile:**
 
 ====   ===========    =============     ===================================   =======  ======
 Chr      Start            End               Name                               Score   Strand
@@ -169,15 +250,15 @@ Chr      Start            End               Name                               S
  1      67103237        67103382         NR_075077_exon_2_0_chr1_67103238_r     0       \-
 ====   ===========    =============     ===================================   =======  ======
 
-Normal BED file in BED6 format. The name should contain a gene name or gene ID and the exon_number. You can specify how the name should be processed using -p (platform), -s (character used to separate name and exon number) and -e (exon_index). 
+Normal BED file in BED6 format. The name should contain a gene name or gene ID and the exon_number. You can specify how the name should be processed using -p (platform), -s (character used to separate name and exon number) and -e (exon_index).
 
-========================================================================
-OUTPUT
-========================================================================
+**************************
+Output produced by FUCHS
+**************************
 
-**hek293.alternative_splicing.txt:** 
+**hek293.alternative_splicing.txt:**
 
-This file summarizes the relationship of different circRNAs derived from the same host-gene. 
+This file summarizes the relationship of different circRNAs derived from the same host-gene.
 
 =============  ============================================================    =========================================  =========   ===========  =============================================
 Transcript      circles                                                        same_start                                 same_end    overlapping  within
@@ -193,13 +274,13 @@ NM_001291940    1:236803428-236838599,1:236806144-236816543                    .
 | *same_end*: Same as *same_start*, only now, circle pairs share the same end coordinates.
 | *overlapping*: Comma-seprated list of circRNA pairs separated by |. Pairs in this column share neither start nor end coordinates, but their relation is such that: start.x < start.y && end.x < end.y && start.y < end.x
 | *within*: Same as *overlapping*, only now, circle pairs have the follwoing relation: start.x < start.y && end.x > end.y
-| 
+|
 
-**hek293.exon_counts.bed:** 
+**hek293.exon_counts.bed:**
 This file is a bed-formatted file that describes the exon-structure and can be loaded into any genome browser. Each line corresponds to a circRNA.
 
 =====  ============  =============    ============    =============    =======   ======== =========  ======= ===========  ==============  =====================
-Chr    Circle Start   Circle  End      Transcript     Num of Reads     Strand      Start   End        Color  Num of Exon  Exon Lengths     Relative Exon Starts   
+Chr    Circle Start   Circle  End      Transcript     Num of Reads     Strand      Start   End        Color  Num of Exon  Exon Lengths     Relative Exon Starts
 =====  ============  =============    ============    =============    =======   ======== =========  ======= ===========  ==============  =====================
 chr1    35358925        35361789        NM_005095       9               \+       35358925 35361789   0,255,0  3           521,61,170      0,2269,2694
 chr1    20749723        20773610        NM_016287       4               \-       20749723 20773610   0,255,0  4           159,90,143,159  0,7443,21207,23728
@@ -217,8 +298,8 @@ chr1    20749723        20773610        NM_016287       4               \-      
 | *Num of Exon*: Number of exons in this circRNA consists of
 | *Exon Lengths*: Comma-seprated list of the length of each exon
 | *Relative Exon Starts*: Comma-separated list of the relative starting positions of the exons within the circle boundaries.
-| 
-**hek293.exon_counts.txt:** 
+|
+**hek293.exon_counts.txt:**
 This file contains similar information as the previous file, just more detailed inforamtion on the exons. Each line corresponds to one exon.
 
 ======= =====================  ================ ============  ========== =====  ============   ============= ======= =============   ==============  ===========     ========= ========
@@ -249,10 +330,10 @@ hek293   1:20749723-20773610     NM_016287       NM_016287       8       1      
 | *fragments*: Number of broken fragments aligning to the circle
 | *number\+*: Number of reads spanning the chimeric junction on the forward strand
 | *number\-*: Number of reads spanning the chimeric junction on the reverse strand (if reads are only from one strand, it could indicate, that there is a sequencing bias.)
-| 
+|
 
-**hek293.mate_status.txt:** 
-This output file contains the results of analysing the amount of how often each fragment spans a chimeric junction. A fragment can either span the chimeric junction once (single), only one end spans the junction, 
+**hek293.mate_status.txt:**
+This output file contains the results of analysing the amount of how often each fragment spans a chimeric junction. A fragment can either span the chimeric junction once (single), only one end spans the junction,
 twice (double) both ends span the chimeric junction, or more than twice (undefined).
 
 =====================  ================ =============   ============   ============    ======= ======== ==========
@@ -262,17 +343,17 @@ circle_id               transcript_ids  num_reads       min_length      max_leng
 1_35358925_35361789     NM_005095       9               754              754             9       0       0
 =====================  ================ =============   ============   ============    ======= ======== ==========
 
-| *circle_id*: 
-| *transcript_ids*: 
-| *num_reads*: 
-| *min_length*: 
-| *max_length*: 
-| *single*: 
-| *double*: 
-| *undefined*: 
-| 
+| *circle_id*:
+| *transcript_ids*:
+| *num_reads*:
+| *min_length*:
+| *max_length*:
+| *single*:
+| *double*:
+| *undefined*:
+|
 
-**hek293.skipped_exons.bed:** 
+**hek293.skipped_exons.bed:**
 
 =====  ==============  ============    ==============  ======= ======= =============== ============   ========= ========== ============ =============
 Chr     Circle-Start    Circle-End      Transcript      Ratio  Strand   Intron-Start    Intron-End     Color    NumExon\-2 IntronLength RelativeStart
@@ -282,14 +363,14 @@ chr6    161034259       161049979       NM_001291958    40.0    .       16104933
 =====  ==============  ============    ==============  ======= ======= =============== ============   ========= ========== ============ =============
 
 
-**hek293.skipped_exons.txt:** 
+**hek293.skipped_exons.txt:**
 
-=====================   ==============  ======================  =============================================   ======================================================================================================================================   =============   ===========    
+=====================   ==============  ======================  =============================================   ======================================================================================================================================   =============   ===========
 circle_id               transcript_id   skipped_exon            intron                                          read_names                                                                                                                               splice_reads    exon_reads
-=====================   ==============  ======================  =============================================   ======================================================================================================================================   =============   ===========    
+=====================   ==============  ======================  =============================================   ======================================================================================================================================   =============   ===========
 5_178885614_178931326   NM_030613       5:178916564-178916710   set\(\[\(\'5\', 178913072, 178931236\)\]\)      MISEQ:136:000000000-ACBC6:1:2103:10044:24618,MISEQ:136:000000000-ACBC6:1:2115:19571:6931,MISEQ:136:000000000-ACBC6:1:1119:25537:8644     3               5
 6_161034259_161049979   NM_001291958    6:161049332-161049852   set\(\[\(\'6\', 161049332, 161049852\)\]\)      MISEQ:136:000000000-ACBC6:1:1113:25288:9067,MISEQ:136:000000000-ACBC6:1:2116:11815:3530                                                  2               5
-=====================   ==============  ======================  =============================================   ======================================================================================================================================   =============   ===========    
+=====================   ==============  ======================  =============================================   ======================================================================================================================================   =============   ===========
 
 
 --------------------
@@ -325,6 +406,3 @@ cluster_means_all_circles.png
 1_20749723_20773610.NM_016287.txt
 coverage.clusters.all_circles.pdf
 coverage_profiles.all_circles.pdf
-
---------------------
-
