@@ -129,6 +129,7 @@ setup(
         'scripts/FUCHS',
         'scripts/summarized_coverage_profiles.R',
         'scripts/make_coverage_picture.R',
-
+        'scripts/guided_denovo_circle_structure_parallel',
+        'scripts/denovo_circle_structure_parallel'
     ]
 )

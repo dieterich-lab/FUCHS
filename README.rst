@@ -213,7 +213,7 @@ Run the additional module guided_denovo_circle_structure_parallel.py to obtain a
 
 .. code-block:: bash
 
-  $ python guided_denovo_circle_structure_parallel.py -c 18 -A hg38.RefSeq.exons.bed FUCHS/ hek293
+  $ guided_denovo_circle_structure_parallel -c 18 -A hg38.RefSeq.exons.bed FUCHS/ hek293
 
   # FUCHS/ corresponds to the output directory of the FUCHS pipeline
   # hek293 corresponds to your sample name, just as specified for the pipeline
