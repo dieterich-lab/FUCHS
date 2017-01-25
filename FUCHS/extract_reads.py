@@ -68,11 +68,18 @@ class extract_reads(object):
                 circle_bam = pysam.AlignmentFile(
                     "%s/%s_%sreads.bam" % (outfolder, circle.replace(':', '_').replace('|', '_'), len(circles[circle])),
                     "wb", template=samfile)
+                has_content = 0
                 for read in circles[circle]:
                     if read in reads:
                         for part in reads[read]:
                             circle_bam.write(reads[read][part])
+                            has_content += 1
                 circle_bam.close()
+                # nothing was written to the bam file, delete it so that following steps don't operate
+                # on an empty file
+                if has_content == 0:
+                    os.remove("%s/%s_%sreads.bam" % (outfolder, circle.replace(':', '_').replace('|', '_'), len(circles[circle])))
+
         samfile.close()
         return
 
@@ -92,7 +99,6 @@ class extract_reads(object):
         files = os.listdir('%s/%s' % (self.outfolder, self.sample))
         print('%s circles passed your thresholds of at least %s reads with at least a mapq of %s\n\n' % (
             len(files), self.cutoff, self.mapq_cutoff))
-
         for f in files:
             if f.split('.')[-1] == 'bam':
 
