@@ -100,7 +100,8 @@ class extract_reads(object):
         print('%s circles passed your thresholds of at least %s reads with at least a mapq of %s\n\n' % (
             len(files), self.cutoff, self.mapq_cutoff))
         for f in files:
-            if f.split('.')[-1] == 'bam':
+            # no do re-sort sorted files and create duplicates
+            if f.split('.')[-1] == 'bam' and "sorted" not in f:
 
                 pysam.sort("-o",
                            '%s/%s/%s' % (self.outfolder, self.sample, f.replace('.bam', '.sorted.bam')),
