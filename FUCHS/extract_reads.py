@@ -96,17 +96,29 @@ class extract_reads(object):
             os.mkdir('%s/%s' % (self.outfolder, self.sample))
         self.write_circle_bam(reads, circle_info, self.cutoff, self.bamfile, '%s/%s' % (self.outfolder, self.sample))
         print('DONE writing circle bam files\n')
-        files = os.listdir('%s/%s' % (self.outfolder, self.sample))
+        #files = os.listdir('%s/%s' % (self.outfolder, self.sample))
+        import glob
+
+        files = glob.glob('%s/%s/*.bam' % (self.outfolder, self.sample))
+
+        # possible sorted files from previous run
+        sorted_bams = glob.glob('%s/%s/*.sorted.bam' % (self.outfolder, self.sample))
+
+        # fix the file / circle count
+        actual_bams = len(files) - len(sorted_bams)
+
         print('%s circles passed your thresholds of at least %s reads with at least a mapq of %s\n\n' % (
-            len(files), self.cutoff, self.mapq_cutoff))
+            actual_bams, self.cutoff, self.mapq_cutoff))
+
+        # we iterate over the "wrong" file list but exclude sorted files later
         for f in files:
             # no do re-sort sorted files and create duplicates
             if f.split('.')[-1] == 'bam' and "sorted" not in f:
 
                 pysam.sort("-o",
-                           '%s/%s/%s' % (self.outfolder, self.sample, f.replace('.bam', '.sorted.bam')),
-                           '%s/%s/%s' % (self.outfolder, self.sample, f)
+                           '%s' % (f.replace('.bam', '.sorted.bam')),
+                           '%s' % (f)
                            )
 
-                pysam.index('%s/%s/%s' % (self.outfolder, self.sample, f.replace('.bam', '.sorted.bam')))
-                os.system('rm %s/%s/%s' % (self.outfolder, self.sample, f))
+                pysam.index('%s' % (f.replace('.bam', '.sorted.bam')))
+                os.system('rm %s' % (f))
