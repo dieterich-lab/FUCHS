@@ -178,19 +178,23 @@ The files ``mate1.chimeric.sam`` and ``mate2.chimeric.sam`` files for FUCHS have
 
 .. code-block:: bash
 
+  # convert SAM to BAM
   $ samtools view -Sb -o hek293.1 hek293.1/Chimeric.out.sam
   $ samtools view -Sb -o hek293.2 hek293.2/Chimeric.out.sam
 
+  # sort both BAM files
   $ samtools sort hek293.1 hek293.1.sorted
   $ samtools sort hek293.2 hek293.2.sorted
 
+  # create an index for both BAM files
   $ samtools index hek293.1.sorted.bam
   $ samtools index hek293.2.sorted.bam
 
+  # merge both mate BAM files into one new BAM file
   $ samtools merge hek293.sorted.bam hek293.1.sorted.bam hek293.2.sorted.bam
 
+  # re-index the newly aggregated BAM file
   $ samtools index hek293.sorted.bam
-
 
 
 4. Running FUCHS
