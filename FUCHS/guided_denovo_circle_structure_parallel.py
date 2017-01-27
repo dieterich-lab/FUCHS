@@ -81,11 +81,11 @@ def connect_introns(introns, circ_coordinates):
 
 
 def get_coverage_profile(bamfile, circ_coordinates, transcripts):
-    x = pybedtools.example_bedtool(bamfile)
+    bam = pybedtools.example_bedtool(bamfile)
     coordinates = pybedtools.BedTool('%s %s %s' % (circ_coordinates[0], circ_coordinates[1], circ_coordinates[2]),
                                      from_string=True)
-    circle_coverage = x.coverage(coordinates, d=True)
-    split_circle_coverage = x.coverage(coordinates, d=True, split=True)
+    circle_coverage = coordinates.coverage(bam, d=True)
+    split_circle_coverage = coordinates.coverage(bam, d=True, split=True)
     coverage = []
     split_coverage = []
     for lola in circle_coverage:
@@ -273,10 +273,11 @@ def write_bed6(transcript_coverage, outfile, circ_coordinates, coverage):
 
 
 def get_coverage(circ_coordinates, bamfile):
-    x = pybedtools.example_bedtool(bamfile)
+    bam = pybedtools.example_bedtool(bamfile)
     coordinates = pybedtools.BedTool('%s %s %s' % (circ_coordinates[0], circ_coordinates[1], circ_coordinates[2]),
                                      from_string=True)
-    circle_coverage = x.coverage(coordinates, d=True)
+
+    circle_coverage = coordinates.coverage(bam, d=True)
     coverage = []
     for lola in circle_coverage:
         coverage += [int(lola[4])]
