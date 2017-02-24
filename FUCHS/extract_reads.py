@@ -49,10 +49,10 @@ class extract_reads(object):
         for i, read in enumerate(samfile.fetch()):
             if i % 1000000 == 0:
                 print('%s reads processed' % i)
-            if read.qname in circle_reads and read.mapq > cutoff:
-                if not read.qname in reads:
-                    reads[read.qname] = {}
-                reads[read.qname][i] = read
+            if read.query_name in circle_reads and read.mapq > cutoff:
+                if not read.query_name in reads:
+                    reads[read.query_name] = {}
+                reads[read.query_name][(read.reference_start, read.cigarstring, read.is_reverse)] = read
         samfile.close()
         return reads
 
