@@ -65,7 +65,7 @@ class detect_skipped_exons(object):
                     intron = pybedtools.BedTool('%s %s %s' % (reads[lola][forrest]['reference'], start, ends[i]),
                                                 from_string=True)
                     exons = pybedtools.example_bedtool(bedfile)
-                    features = exons.intersect(intron, stream = True)
+                    features = exons.intersect(intron)
                     for skipped in features:
                         if not (skipped[0], int(skipped[1]), int(skipped[2])) in skipped_exons:
                             skipped_exons[(skipped[0], int(skipped[1]), int(skipped[2]))] = {'reads': [], 'intron': [],
@@ -81,7 +81,7 @@ class detect_skipped_exons(object):
         for lola in skipped_exons:
             exon_readcount = []
             coordinates = pybedtools.BedTool('%s %s %s' % (lola[0], lola[1], lola[2]), from_string=True)
-            reads = bam.intersect(coordinates, stream = True)
+            reads = bam.intersect(coordinates)
             for r in reads:
                 exon_readcount += [r[0]]
             exon_readcount = set(exon_readcount)
