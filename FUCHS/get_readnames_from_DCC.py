@@ -16,8 +16,9 @@ class get_readnames_from_DCC(object):
         input_file = open(infile)
         circIDs = []
         for line in input_file:
-            current_line = line.replace('\n', '').split('\t')
-            circIDs += [(current_line[0], int(current_line[1]), int(current_line[2]))]
+	    if not line.startswith('#') and not line.startswith('Chr\t'):
+		current_line = line.replace('\n', '').split('\t')
+		circIDs += [(current_line[0], int(current_line[1]), int(current_line[2]))]
         input_file.close()
         return circIDs
 
