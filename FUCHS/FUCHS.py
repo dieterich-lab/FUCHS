@@ -190,7 +190,7 @@ def main():
 
     # Step2 : extract circle reads from sample bam file
     O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')
-    O.write('%s: starting to extract chimeric reads from bamfile\n' %(datetime.datetime.now()))
+    O.write('\tfinished\n\n%s: starting to extract chimeric reads from bamfile\n' %(datetime.datetime.now()))
     O.close()
     if not 'step2' in skipped_steps:
 
@@ -200,7 +200,7 @@ def main():
 
     # Step3 : (optional) get information about possibly rolling circles 
     O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')
-    O.write('%s: starting to get mate pair information\n' %(datetime.datetime.now()))
+    O.write('\tfinished\n\n%s: starting to get mate pair information\n' %(datetime.datetime.now()))
     O.close()
     if not 'step3' in skipped_steps:
 
@@ -215,7 +215,7 @@ def main():
 
     # Step4 : (optional) find exon skipping events
     O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')
-    O.write('%s: starting to detect skipped exons\n' %(datetime.datetime.now()))
+    O.write('\tfinished\n\n%s: starting to detect skipped exons\n' %(datetime.datetime.now()))
     O.close()
     if not 'step4' in skipped_steps:
 
@@ -230,7 +230,7 @@ def main():
 
     # Step5 : (optional) identify different circles within the same host gene
     O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')
-    O.write('%s: starting to detect alternative splicing\n' %(datetime.datetime.now()))
+    O.write('\tfinished\n\n%s: starting to detect alternative splicing\n' %(datetime.datetime.now()))
     O.close()
     if not 'step5' in skipped_steps:
 
@@ -247,7 +247,7 @@ def main():
     # Step6 : (optional) generate coverage profile for each circle
     # (one transcript per gene, best if most fitting transcript)
     O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')
-    O.write('%s: starting to generate coverage profiles\n' %(datetime.datetime.now()))
+    O.write('\tfinished\n\n%s: starting to generate coverage profiles\n' %(datetime.datetime.now()))
     O.close()
     if not 'step6' in skipped_steps:
         # os.system('python get_coverage_profile.py -e %s -s %s -p %s %s %s %s --tmp %s' %
@@ -265,7 +265,7 @@ def main():
 
     # Step7 : (optional, requires step 5)
     O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')
-    O.write('%s: starting to summarize the coverage profiles\n' %(datetime.datetime.now()))
+    O.write('\tfinished\n\n%s: starting to summarize the coverage profiles\n' %(datetime.datetime.now()))
     O.close()
     if not 'step7' in skipped_steps:
 	if not os.path.isfile('%s/%s.coverage_profiles/coverage_profiles.all_circles.pdf' %(outfolder, sample)):
@@ -283,7 +283,7 @@ def main():
 
     # Step8 : (optional, requires step6) pictures for all circles
     O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')
-    O.write('%s: starting to visualize the coverage profiles\n' %(datetime.datetime.now()))
+    O.write('\tfinished\n\n%s: starting to visualize the coverage profiles\n' %(datetime.datetime.now()))
     O.close()
     if not 'step8' in skipped_steps:
         if os.path.isdir('%s/%s.coverage_profiles/' %(outfolder, sample)):
@@ -303,7 +303,7 @@ def main():
 	    O.close()
     
     O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')
-    O.write('\n\nFUCHS finished at %s\n\n' %(datetime.datetime.now()))
+    O.write('\tfinished\n\n\nFUCHS finished at %s\n\n' %(datetime.datetime.now()))
     O.write("FUCHS took --- %s minutes ---\n\n" % (round((time.time() - start_time)/60.0)))
     O.close()
 if __name__ == '__main__':
