@@ -19,7 +19,7 @@ def main():
                         help='If you mapped with STAR and are using step1 you need to provide a list'
                              ' of circle ids (CircRNACount or CircCoordinates from DCC)'
                              'You must supply either -C or -DCC')    
-    parser.add_argument('-paired', dest='paired', default='none',
+    parser.add_argument('-CJ', '--chimericJunctions', dest='chimeric_junction', default='none',
                         help='If you mapped with STAR and are using step1 you need to provide the paired end Chimeric.junction.out file here')
     parser.add_argument('-m1', '--mate1', dest='mate1', default='none',
                         help='If you mapped with STAR and are using step1 you need to provide the mate1.Chimeric.junction.out file here (optional if ends were mapped separately)')
@@ -47,8 +47,8 @@ def main():
     parser.add_argument('-s', dest='split_character', default='_', help='feature name separator.')
     parser.add_argument('-e', dest='exon_index', default=3, type=int,
                         help='Field indicating the exon number after splitting feature name by split_character (for the annotation file).')
-    parser.add_argument('-p', dest='ref_platform', choices=['refseq', 'ensembl'],
-                        help='Specifies the annotation platform which was used.')
+    parser.add_argument('-p', dest='ref_platform', default='refseq',
+                        help='Specifies the annotation platform which was used (refseq or ensembl)')
     parser.add_argument('-sS', dest='skipped_steps', default='none',
                         help='Comma separated list of steps that should be skipped (e.g. step3,step4,step6)')
     parser.add_argument('--tmp', dest='tmp_folder', default='/tmp/',
@@ -59,9 +59,9 @@ def main():
     # parse arguments
     circles = os.path.expanduser(args.circlefile)
     circle_ids = os.path.expanduser(args.CircRNACount)
-    paired = os.path.expanduser(args.paired)
-    junctionfile = os.path.expanduser(args.mate1)
-    mates = os.path.expanduser(args.mate2)
+    paired = os.path.expanduser(args.chimeric_junction) # not the greatest naming scheme
+    junctionfile = os.path.expanduser(args.mate1) # not the greatest naming scheme
+    mates = os.path.expanduser(args.mate2) # not the greatest naming scheme
     bamfile = os.path.expanduser(args.bamfile)
     bedfile = os.path.expanduser(args.bedfile)
     outfolder = os.path.expanduser(args.out_folder)
@@ -79,7 +79,7 @@ def main():
     # TODO
     # test if command line was correct
     if circles == 'none' and circle_ids == 'none':
-	print('ERROR, you need to specify either a -C or -DCC.\nIf you mapped and detected your circRNAs with STAR/DCC you may indicate \n -DCC CircRNACount -m1 mate1.Chimeric.junction.out and -m2 mate2.Chimeric.junction.out\n if you used a different program, please supply a circID list using -C.\n' )
+	print('ERROR, you need to specify either a -C or -DCC.\nIf you mapped and detected your circRNAs with STAR/DCC you may indicate \n-DCC CircRNACount, -CJ Chimeric.junction.out, -m1 mate1.Chimeric.junction.out and -m2 mate2.Chimeric.junction.out\nif you used a different program, please supply a circID list using -C.\n' )
 	quit()
     
     if not circles == 'none' and not circle_ids == 'none':
@@ -87,67 +87,74 @@ def main():
 	circle_ids == 'none'
 	skipped_steps += ['step1']
     
-    if not circle_ids == 'none' and junctions == 'none':
-	print('You have indicated that you detected your circRNAs using STAR/DCC with the -DCC flag, \n however you did not specify a Chimeric.junction.out file, this is necessary, \nplease specify at least -m1, if you have paired end data also specify -m2\n')
+    if not circle_ids == 'none' and paired == 'none':
+	print('You have indicated that you detected your circRNAs using STAR/DCC with the -DCC flag, \nhowever you did not specify a Chimeric.junction.out file, this is necessary, \nplease specify at least -CJ, if you have paired end data also specify -m1/-m2\n')
 	quit()
 
     # convert relative paths names to absolute path names
     working_dir = os.getcwd()
     if not circles == 'none' and not os.path.isabs(circles):
 	circles = os.path.abspath(os.path.join(os.getcwd(), circles))
-	print('changes circID file to %s\n' %(circles))
-	if not os.path.exists(circles):
-	    print('ERROR, no such file or directory: %s' %(circles))
-	    quit()
+	print('changed circID file to %s\n' %(circles))
+    if not circles == 'none' and not os.path.exists(circles):
+	print('ERROR, no such file or directory: %s' %(circles))
+	quit()
     
     if not circle_ids == 'none' and not os.path.isabs(circle_ids):
 	circle_ids = os.path.abspath(os.path.join(os.getcwd(), circle_ids))
 	print('changed CircRNACount file to %s\n' %(circle_ids))
-	if not os.path.exists(circle_ids):
-	    print('ERROR, no such file or directory: %s' %(circle_ids))
-	    quit()
+    if not circle_ids == 'none' and not os.path.exists(circle_ids):
+	print('ERROR, no such file or directory: %s' %(circle_ids))
+	quit()
 	
+    if not paired == 'none' and not os.path.isabs(paired):
+	paired = os.path.abspath(os.path.join(os.getcwd(), paired))
+	print('changed Chimeric.junction.out file to %s\n' %(paired))
+    if not paired == 'none' and not os.path.exists(paired):
+	print('ERROR, no such file or directory: %s' %(paired))
+	quit()
+    
     if not mates == 'none' and not os.path.isabs(mates):
 	mates = os.path.abspath(os.path.join(os.getcwd(), mates))
-	print('changed CircRNACount file to %s\n' %(mates))
-	if not os.path.exists(mates):
-	    print('ERROR, no such file or directory: %s' %(mates))
-	    quit()
-    
+	print('changed mate2.Chimeric.junction.out file to %s\n' %(mates))
+    if not mates == 'none' and not os.path.exists(mates):
+	print('ERROR, no such file or directory: %s' %(mates))
+	quit()
+
     if not junctionfile == 'none' and not os.path.isabs(junctionfile):
 	junctionfile = os.path.abspath(os.path.join(os.getcwd(), junctionfile))
-	print('changed CircRNACount file to %s\n' %(junctionfile))
-	if not os.path.exists(junctionfile):
-	    print('ERROR, no such file or directory: %s' %(junctionfile))
-	    quit()
+	print('changed mate1.Chimeric.junction.out file to %s\n' %(junctionfile))
+    if not junctionfile == 'none' and not os.path.exists(junctionfile):
+	print('ERROR, no such file or directory: %s' %(junctionfile))
+	quit()
     
     if not os.path.isabs(bamfile):
 	bamfile = os.path.abspath(os.path.join(os.getcwd(), bamfile))
-	print('changed CircRNACount file to %s\n' %(bamfile))
-	if not os.path.exists(bamfile):
-	    print('ERROR, no such file or directory: %s' %(bamfile))
-	    quit()
+	print('changed bamfile file to %s\n' %(bamfile))
+    if not os.path.exists(bamfile):
+	print('ERROR, no such file or directory: %s' %(bamfile))
+	quit()
 	
     if not os.path.isabs(outfolder):
 	outfolder = os.path.abspath(os.path.join(os.getcwd(), outfolder))
-	print('changed CircRNACount file to %s\n' %(outfolder))
-	if not os.path.exists(outfolder):
-	    print('ERROR, no such file or directory: %s' %(outfolder))
-	    quit()
+	print('changed output folder to %s\n' %(outfolder))
+    if not os.path.exists(outfolder):
+	print('ERROR, no such file or directory: %s' %(outfolder))
+	quit()
 	
     if not os.path.isabs(tmp_folder):
 	tmp_folder = os.path.abspath(os.path.join(os.getcwd(), tmp_folder))
-	print('changed CircRNACount file to %s\n' %(tmp_folder))
-	if not os.path.exists(tmp_folder):
-	    print('ERROR, no such file or directory: %s' %(tmp_folder))
-	    quit()
+	print('changed tmp folder to %s\n' %(tmp_folder))
+    if not os.path.exists(tmp_folder):
+	print('ERROR, no such file or directory: %s' %(tmp_folder))
+	quit()
 	
     if not os.path.isabs(bedfile):
 	bedfile = os.path.abspath(os.path.join(os.getcwd(), bedfile))
-	print('changed CircRNACount file to %s\n' %(bedfile))
-	if not os.path.exists(bedfile):
-	    print('ERROR, no such file or directory: %s' %(bedfile))
-	    quit()
+	print('changed bedfile file to %s\n' %(bedfile))
+    if not os.path.exists(bedfile):
+	print('ERROR, no such file or directory: %s' %(bedfile))
+	quit()
 	
     
     #test platform
