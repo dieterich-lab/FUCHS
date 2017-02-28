@@ -12,7 +12,7 @@ class detect_splicing_variants(object):
         # parse arguments
         self.circlefile = circles
         self.bedfile = bedfile
-        self.outfile = outfolder + sample + ".alternative_splicing.txt "
+        self.outfile = outfolder + sample + ".alternative_splicing.txt"
         self.split_character = split_character
         self.platform = platform
         self.tmp_folder = tmp_folder

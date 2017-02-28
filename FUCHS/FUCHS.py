@@ -7,6 +7,8 @@ def main():
     # required packages
     import os
     import argparse
+    import datetime
+    import time
 
     parser = argparse.ArgumentParser(description='Main script of the FUCHS pipeline.'
                                                  'For a detailed help see https://github.com/dieterich-lab/FUCHS '
@@ -75,6 +77,10 @@ def main():
     skipped_steps = args.skipped_steps.split(',')
     tmp_folder = os.path.expanduser(args.tmp_folder)
     
+    # start writing down FUCHS time for retracing
+    print('Started FUCHS at %s' %(datetime.datetime.now()))
+    dt = str(datetime.datetime.now())
+    start_time = time.time()
     # make log file
     # TODO
     # test if command line was correct
@@ -157,7 +163,6 @@ def main():
 	quit()
 	
     
-    #test platform
     accepted_platforms = ('refseq', 'ensembl')
     platform = platform.lower()
     if not platform in accepted_platforms:
@@ -167,14 +172,26 @@ def main():
     print "The following analysis steps will be skipped: " + '%s' % ', '.join(map(str, skipped_steps))
 
     # Step 1: (optional) if DCC was used, extract circle read names from junction file 
+    O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'w')
+    O.write('FUCHS is starting at %s\n\n'  %(dt))
+    O.write('%s: starting to get readnames from Chimeric.junction.out\n' %(datetime.datetime.now()))
+    O.close()
     if not 'step1' in skipped_steps:
 
         circles = "%s.reads.txt" % junctionfile
-        import get_readnames_from_DCC as get_readnames
-        names = get_readnames.get_readnames_from_DCC(mates, circle_ids, junctionfile)
-        names.run()
+        if not os.path.isfile(circles):
+	    import get_readnames_from_DCC as get_readnames
+	    names = get_readnames.get_readnames_from_DCC(mates, circle_ids, junctionfile)
+	    names.run()
+	else:
+	    O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')
+	    O.write('\tskipping get_readnames_from_DCC because %s exists already\n' %(circles))
+	    O.close()
 
     # Step2 : extract circle reads from sample bam file
+    O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')
+    O.write('%s: starting to extract chimeric reads from bamfile\n' %(datetime.datetime.now()))
+    O.close()
     if not 'step2' in skipped_steps:
 
         import extract_reads as extract_reads
@@ -182,50 +199,94 @@ def main():
         er.run()
 
     # Step3 : (optional) get information about possibly rolling circles 
+    O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')
+    O.write('%s: starting to get mate pair information\n' %(datetime.datetime.now()))
+    O.close()
     if not 'step3' in skipped_steps:
 
-        import get_mate_information as mateinformation
-        mi = mateinformation.mate_information(platform, split_character, bedfile, outfolder, sample, tmp_folder)
-        mi.run()
+        if not os.path.isfile('%s/%s.mate_status.txt' %(outfolder, sample)):
+	    import get_mate_information as mateinformation
+	    mi = mateinformation.mate_information(platform, split_character, bedfile, outfolder, sample, tmp_folder)
+	    mi.run()
+	else:
+	    O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')
+	    O.write('\tskipping get_mate_information because %s/%s.mate_status.txt exists already\n' %(outfolder, sample))
+	    O.close()
 
     # Step4 : (optional) find exon skipping events
+    O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')
+    O.write('%s: starting to detect skipped exons\n' %(datetime.datetime.now()))
+    O.close()
     if not 'step4' in skipped_steps:
 
-        import detect_skipped_exons as skipped_exons
-        se = skipped_exons.detect_skipped_exons(outfolder, sample, bedfile, tmp_folder, platform)
-        se.run()
+        if not os.path.isfile('%s/%s.skipped_exons.bed' %(outfolder, sample)):
+	    import detect_skipped_exons as skipped_exons
+	    se = skipped_exons.detect_skipped_exons(outfolder, sample, bedfile, tmp_folder, platform)
+	    se.run()
+	else:
+	    O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')
+	    O.write('\tskipping detect_skipped_exons because %s/%s.skipped_exons.bed exists already\n' %(outfolder, sample))
+	    O.close()
 
     # Step5 : (optional) identify different circles within the same host gene
+    O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')
+    O.write('%s: starting to detect alternative splicing\n' %(datetime.datetime.now()))
+    O.close()
     if not 'step5' in skipped_steps:
 
-        import detect_splicing_variants as splicing_variants
-        sv = splicing_variants.detect_splicing_variants(split_character, platform, circles, bedfile,
-                                                        outfolder, sample, tmp_folder)
-        sv.run()
+        if not os.path.isfile('%s/%s.alternative_splicing.txt' %(outfolder, sample)):
+	    import detect_splicing_variants as splicing_variants
+	    sv = splicing_variants.detect_splicing_variants(split_character, platform, circles, bedfile,
+							    outfolder, sample, tmp_folder)
+	    sv.run()
+	else:
+	    O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')
+	    O.write('\tskipping detect_splicing_variants because %s/%s.alternative_splicing.txt exists already\n' %(outfolder, sample))
+	    O.close()
 
     # Step6 : (optional) generate coverage profile for each circle
     # (one transcript per gene, best if most fitting transcript)
+    O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')
+    O.write('%s: starting to generate coverage profiles\n' %(datetime.datetime.now()))
+    O.close()
     if not 'step6' in skipped_steps:
         # os.system('python get_coverage_profile.py -e %s -s %s -p %s %s %s %s --tmp %s' %
         #           (exon_index, split_character, platform, bedfile, outfolder, sample, tmp_folder))
 
-        import get_coverage_profile as coverage_profile
-        sv = coverage_profile.get_coverage_profile(exon_index, split_character, platform, bedfile,
-                                                   outfolder, sample, tmp_folder)
-        sv.run()
+        if not os.path.isfile('%s/%s.exon_counts.bed' %(outfolder, sample)) and not os.path.isdir('%s/%s.coverage_profiles/' %(outfolder, sample)):
+	    import get_coverage_profile as coverage_profile
+	    sv = coverage_profile.get_coverage_profile(exon_index, split_character, platform, bedfile,
+						      outfolder, sample, tmp_folder)
+	    sv.run()
+	else:
+	    O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')
+	    O.write('\tskipping get_coverage_profile because %s/%s.exon_counts.bed exists already\n' %(outfolder, sample))
+	    O.close()
 
     # Step7 : (optional, requires step 5)
+    O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')
+    O.write('%s: starting to summarize the coverage profiles\n' %(datetime.datetime.now()))
+    O.close()
     if not 'step7' in skipped_steps:
-        if not 'step6' in skipped_steps:
-
-            os.system('summarized_coverage_profiles.R %s/%s.coverage_profiles' % (outfolder, sample))
-        else:
-            print('You are trying cluster the coverage profiles without '
-                  'generating coverage profiles first, please run step 5')
+	if not os.path.isfile('%s/%s.coverage_profiles/coverage_profiles.all_circles.pdf' %(outfolder, sample)):
+	    if os.path.isdir('%s/%s.coverage_profiles/' %(outfolder, sample)):
+		os.system('summarized_coverage_profiles.R %s/%s.coverage_profiles' % (outfolder, sample))
+	    else:
+		O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')
+		O.write('\tYou are trying cluster the coverage profiles without '
+		      'generating coverage profiles first, please run step 5 (get_coverage_profile)\n')
+		O.close()
+	else:
+	    O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')
+	    O.write('\tskipping summarized_coverage_profiles.R because %s/%s.coverage_profiles/coverage_profiles.all_circles.pdf already exists\n' %(outfolder, sample))
+	    O.close()
 
     # Step8 : (optional, requires step6) pictures for all circles
+    O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')
+    O.write('%s: starting to visualize the coverage profiles\n' %(datetime.datetime.now()))
+    O.close()
     if not 'step8' in skipped_steps:
-        if not 'step6' in skipped_steps:
+        if os.path.isdir('%s/%s.coverage_profiles/' %(outfolder, sample)):
             files = os.listdir('%s/%s.coverage_profiles' % (outfolder, sample))
             folders = os.listdir(outfolder)
             if not '%s.coverage_pictures' % (sample) in folders:
@@ -236,8 +297,14 @@ def main():
                     os.system('make_coverage_picture.R %s/%s.coverage_profiles/%s %s/%s.coverage_pictures/' %
                               (outfolder, sample, f, outfolder, sample))
         else:
-            print('You are trying to generate coverage pictures '
-                  'without generating coverage profiles, please run step 5')
-
+	    O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')
+            O.write('\tYou are trying to generate coverage pictures '
+                  'without generating coverage profiles, please run step 5 (get_coverage_profile)\n')
+	    O.close()
+    
+    O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')
+    O.write('\n\nFUCHS finished at %s\n\n' %(datetime.datetime.now()))
+    O.write("FUCHS took --- %s minutes ---\n\n" % (round((time.time() - start_time)/60.0)))
+    O.close()
 if __name__ == '__main__':
     main()
