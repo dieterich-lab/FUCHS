@@ -52,28 +52,29 @@ class detect_skipped_exons(object):
 
 
     def intersect_introns_with_bedfile(self, bedfile, reads, coordinates):
-        exons = pybedtools.example_bedtool(bedfile)
-        exons = exons.filter(lambda b: b.chrom == coordinates[0] and b.start >= coordinates[1] and b.end <= coordinates[2])
-        skipped_exons = {}
-        for lola in reads:
-            for forrest in reads[lola]:
-                reads[lola][forrest]['intron'] = {}
-                breakpoints = reads[lola][forrest]['breakpoint']
-                starts = breakpoints[::2]
-                ends = breakpoints[1::2]
-                for i, start in enumerate(starts):
-                    intron = pybedtools.BedTool('%s %s %s' % (reads[lola][forrest]['reference'], start, ends[i]),
-                                                from_string=True)
-                    exons = pybedtools.example_bedtool(bedfile)
-                    features = exons.intersect(intron)
-                    for skipped in features:
-                        if not (skipped[0], int(skipped[1]), int(skipped[2])) in skipped_exons:
-                            skipped_exons[(skipped[0], int(skipped[1]), int(skipped[2]))] = {'reads': [], 'intron': [],
-                                                                                             'name': skipped[3]}
-                        skipped_exons[(skipped[0], int(skipped[1]), int(skipped[2]))]['reads'] += [lola]
-                        skipped_exons[(skipped[0], int(skipped[1]), int(skipped[2]))]['intron'] += [
-                            (reads[lola][forrest]['reference'], start, ends[i])]
-        return (skipped_exons)
+	exons = pybedtools.example_bedtool(bedfile)
+	exons = exons.filter(lambda b: b.chrom == coordinates[0] and b.start >= coordinates[1] and b.end <= coordinates[2])
+	skipped_exons = {}
+	introns = {}
+	for lola in reads:
+	    for forrest in reads[lola]:
+		reads[lola][forrest]['intron'] = {}
+		breakpoints = reads[lola][forrest]['breakpoint']
+		starts = breakpoints[::2]
+		ends = breakpoints[1::2]
+		for i, start in enumerate(starts):
+		    if not (reads[lola][forrest]['reference'], start, ends[i]) in introns:
+			introns[(reads[lola][forrest]['reference'], start, ends[i])] = []
+		    introns[(reads[lola][forrest]['reference'], start, ends[i])] += [lola]
+	introns_for_bed = '\n'.join([' '.join([str(i) for i in j]) for j in sorted(introns.keys())])
+	intron = pybedtools.BedTool(introns_for_bed, from_string=True)
+	features = exons.intersect(intron, wo = True)
+	for skipped in features:
+	    if not (str(skipped[0]), int(skipped[1]), int(skipped[2])) in skipped_exons:
+		skipped_exons[(str(skipped[0]), int(skipped[1]), int(skipped[2]))] = {'reads': [], 'intron': [],'name': str(skipped[3])}
+	    skipped_exons[(str(skipped[0]), int(skipped[1]), int(skipped[2]))]['reads'] += introns[(str(skipped[6]), int(skipped[7]), int(skipped[8]))]
+	    skipped_exons[(str(skipped[0]), int(skipped[1]), int(skipped[2]))]['intron'] += [(str(skipped[6]), int(skipped[7]), int(skipped[8]))]
+	return (skipped_exons)
 
 
     def identify_skipped_exons(self, bamfile, skipped_exons):
