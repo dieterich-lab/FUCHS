@@ -36,7 +36,7 @@ Usage
 *************
 To characterize circRNAs from RNA-seq data you have to:
 
-1. Map RNAseq data from quality checked fastq files with either STAR, BWA, TopHat-Fusion.
+1. Map RNAseq data from quality checked fastq files with either STAR , BWA, TopHat-Fusion.
 
 2. Detect circRNAs using DCC, CIRI, CIRCfinder or CIRCexplorer depending on the program you used for mapping.
 
@@ -60,9 +60,7 @@ Note that STARlong is not mapping chimeric reads correctly.
 
 .. code-block:: bash
 
-  $ mkdir Sample1
-  $ cd Sample1
-  $ STAR --runThreadN 10   --genomeDir [genome]  --outSAMtype BAM Unsorted --readFilesIn Sample1_1.fastq.gz  Sample1_2.fastq.gz   --readFilesCommand zcat  --outFileNamePrefix [sample prefix] --outReadsUnmapped Fastx  --outSJfilterOverhangMin 15 15 15 15 --alignSJoverhangMin 15 --alignSJDBoverhangMin 15 --outFilterMultimapNmax 20   --outFilterScoreMin 1   --outFilterMatchNmin 1   --outFilterMismatchNmax 2  --chimSegmentMin 15    --chimScoreMin 15   --chimScoreSeparation 10  --chimJunctionOverhangMin 15
+  $ STAR --readFilesCommand zcat --runThreadN 18 --genomeDir [genome] --outSAMtype BAM SortedByCoordinate --readFilesIn [sample]_1.fastq.gz ([sample]_2.fastq.gz) --outFileNamePrefix [sample]  --quantMode GeneCounts --genomeLoad NoSharedMemory --outReadsUnmapped Fastx --outSJfilterOverhangMin 15 15 15 15 --alignSJoverhangMin 15 --alignSJDBoverhangMin 10 --outFilterMultimapNmax 20 --outFilterScoreMin 1   --outFilterMismatchNmax 999 --outFilterMismatchNoverLmax 0.05 --outFilterMatchNminOverLread 0.7 --alignIntronMin 20 --alignIntronMax 1000000 --alignMatesGapMax 1000000  --chimSegmentMin 15  --chimScoreMin 15   --chimScoreSeparation 10  --chimJunctionOverhangMin 15 --twopassMode Basic --alignSoftClipAtReferenceEnds No --outSAMattributes NH HI AS nM NM MD jM jI XS  --sjdbGTFfile [annotation].gtf
 
 
 
@@ -72,16 +70,15 @@ Note that STARlong is not mapping chimeric reads correctly.
 Note: the mate assignments should be consistent throughout the mapping and circular RNA detection process. In the following case, SamplePairedRead_1.fastq.gz is the first mate which also was the first mate in the STAR call.
 
 .. code-block:: bash
+  # remap unmapped reads as single end to obtain double breakpoint fragments
+  
+  $ gzip sample/Unmapped.out.mate1
+  $ mv sample/Unmapped.out.mate1.gz sample/Unmapped_out_mate1.fastq.gz
+  $ STAR --readFilesCommand zcat --runThreadN 18 --genomeDir [genome] --outSAMtype BAM SortedByCoordinate --readFilesIn [sample]/Unmapped_out_mate1.fastq.gz --outFileNamePrefix [sample].mate1.  --quantMode GeneCounts --genomeLoad NoSharedMemory --outReadsUnmapped Fastx --outSJfilterOverhangMin 15 15 15 15 --alignSJoverhangMin 15 --alignSJDBoverhangMin 10 --outFilterMultimapNmax 20 --outFilterScoreMin 1   --outFilterMismatchNmax 999 --outFilterMismatchNoverLmax 0.05 --outFilterMatchNminOverLread 0.7 --alignIntronMin 20 --alignIntronMax 1000000 --alignMatesGapMax 1000000  --chimSegmentMin 15  --chimScoreMin 15   --chimScoreSeparation 10  --chimJunctionOverhangMin 15 --twopassMode Basic --alignSoftClipAtReferenceEnds No --outSAMattributes NH HI AS nM NM MD jM jI XS  --sjdbGTFfile [annotation].gtf
 
-  # Create a directory for mate1 and mate 2
-  $ mkdir mate2
-  $ mkdir mate1
-
-  $ cd mate1
-  $ STAR --runThreadN 10   --genomeDir [genome]  --outSAMtype None --readFilesIn Sample1_1.fastq.gz  --readFilesCommand zcat   --outFileNamePrefix [sample prefix] --outReadsUnmapped Fastx  --outSJfilterOverhangMin 15 15 15 15 --alignSJoverhangMin 15 --alignSJDBoverhangMin 15 --seedSearchStartLmax 30  --outFilterMultimapNmax 20   --outFilterScoreMin 1   --outFilterMatchNmin 1   --outFilterMismatchNmax 2  --chimSegmentMin 15    --chimScoreMin 15   --chimScoreSeparation 10  --chimJunctionOverhangMin 15
-
-  $ cd ../mate2/
-  $ STAR --runThreadN 10   --genomeDir [genome]  --outSAMtype None --readFilesIn Sample1_2.fastq.gz  --readFilesCommand zcat   --outFileNamePrefix [sample prefix] --outReadsUnmapped Fastx  --outSJfilterOverhangMin 15 15 15 15 --alignSJoverhangMin 15 --alignSJDBoverhangMin 15 --seedSearchStartLmax 30  --outFilterMultimapNmax 20   --outFilterScoreMin 1   --outFilterMatchNmin 1   --outFilterMismatchNmax 2  --chimSegmentMin 15    --chimScoreMin 15   --chimScoreSeparation 10  --chimJunctionOverhangMin 15
+  $ gzip sample/Unmapped.out.mate2
+  $ mv sample/Unmapped.out.mate2.gz sample/Unmapped_out_mate2.fastq.gz
+  $ STAR --readFilesCommand zcat --runThreadN 18 --genomeDir [genome] --outSAMtype BAM SortedByCoordinate --readFilesIn [sample]/Unmapped_out_mate2.fastq.gz --outFileNamePrefix [sample].mate2.  --quantMode GeneCounts --genomeLoad NoSharedMemory --outReadsUnmapped Fastx --outSJfilterOverhangMin 15 15 15 15 --alignSJoverhangMin 15 --alignSJDBoverhangMin 10 --outFilterMultimapNmax 20 --outFilterScoreMin 1   --outFilterMismatchNmax 999 --outFilterMismatchNoverLmax 0.05 --outFilterMatchNminOverLread 0.7 --alignIntronMin 20 --alignIntronMax 1000000 --alignMatesGapMax 1000000  --chimSegmentMin 15  --chimScoreMin 15   --chimScoreSeparation 10  --chimJunctionOverhangMin 15 --twopassMode Basic --alignSoftClipAtReferenceEnds No --outSAMattributes NH HI AS nM NM MD jM jI XS  --sjdbGTFfile [annotation].gtf
 
 2. Detection of circRNAs from chimeric.out.junction files with DCC
 -------------------------------------------------------------------
@@ -102,14 +99,14 @@ Preparation of files containing the paths to required ``chimeric.out.junction`` 
  .. code-block:: bash
 
   $ cat samplesheet
-  /path/to/STAR/sample_1/joint_mapping/chimeric.out.junction
+  /path/to/STAR/sample/joint_mapping/chimeric.out.junction
 
 * ``mate1`` file, containing the paths to ``chimeric.out.junction`` files of the separately mapped first read of paired-end data
 
  .. code-block:: bash
 
   $ cat mate2
-  /path/to/STAR/sample_1_mate1/joint_mapping/chimeric.out.junction
+  /path/to/STAR/sample.mate1/joint_mapping/chimeric.out.junction
 
 
 
@@ -118,7 +115,7 @@ Preparation of files containing the paths to required ``chimeric.out.junction`` 
  .. code-block:: bash
 
   $ cat mate2
-  /path/to/STAR/sample_1_mate2/joint_mapping/chimeric.out.junction
+  /path/to/STAR/sample.mate2/joint_mapping/chimeric.out.junction
 
 
 Running DCC
@@ -138,15 +135,15 @@ After performing all preparation steps DCC can now be started:
         -Pi \ # run in paired independent mode, i.e. use -mt1 and -mt2
         -F \ # filter the circular RNA candidate regions
         -M \ # filter out candidates from mitochondrial chromosomes
-        -Nr 5 6 \ minimum number of replicates the candidate is showing in [1] and minimum count in the replicate [2]
+        -Nr 2 2 \ minimum number of replicates the candidate is showing in [1] and minimum count in the replicate [2]
         -fg \ # candidates are not allowed to span more than one gene
         -G \ # also run host gene expression
         -A [Reference].fa \ # name of the fasta genome reference file; must be indexed, i.e. a .fai file must be present
 
   # For single end, non-stranded data:
-  $ DCC @samplesheet -D -R [Repeats].gtf -an [Annotation].gtf -F -M -Nr 5 6 -fg -G -A [Reference].fa
+  $ DCC @samplesheet -D -R [Repeats].gtf -an [Annotation].gtf -F -M -Nr 2 2 -fg -G -A [Reference].fa
 
-  $ DCC @samplesheet -mt1 @mate1 -mt2 @mate2 -D -S -R [Repeats].gtf -an [Annotation].gtf -Pi -F -M -Nr 5 6 -fg
+  $ DCC @samplesheet -mt1 @mate1 -mt2 @mate2 -D -S -R [Repeats].gtf -an [Annotation].gtf -Pi -F -M -Nr 2 2 -fg
 
   # For details on the parameters please refer to the help page of DCC:
   $ DCC -h
@@ -174,27 +171,30 @@ The output of DCC consists of the following four files: CircRNACount, CircCoordi
 3. Prepare input data for FUCHS
 -------------------------------------------------------------------
 
-The files ``mate1.chimeric.sam`` and ``mate2.chimeric.sam`` files for FUCHS have to be merged (not necessary if circles were detected using BWA/CIRI)
+The files  ``chimeric.sam``, ``mate1.chimeric.sam``, and ``mate2.chimeric.sam`` files for FUCHS have to be merged (not necessary if circles were detected using BWA/CIRI)
 
 .. code-block:: bash
 
   # convert SAM to BAM
-  $ samtools view -Sb -o hek293.1 hek293.1/Chimeric.out.sam
-  $ samtools view -Sb -o hek293.2 hek293.2/Chimeric.out.sam
+  $ samtools view -Sb -o sample sample/Chimeric.out.sam
+  $ samtools view -Sb -o sample.1 sample.1/Chimeric.out.sam
+  $ samtools view -Sb -o sample.2 sample.2/Chimeric.out.sam
 
   # sort both BAM files
-  $ samtools sort hek293.1 hek293.1.sorted
-  $ samtools sort hek293.2 hek293.2.sorted
+  $ samtools sort -o sample.sorted.bam sample.bam
+  $ samtools sort -o sample.1.sorted.bam sample.1.bam
+  $ samtools sort -o sample.2.sorted.bam sample.2.bam
 
   # create an index for both BAM files
-  $ samtools index hek293.1.sorted.bam
-  $ samtools index hek293.2.sorted.bam
+  $ samtools index sample.sorted.bam
+  $ samtools index sample.1.sorted.bam
+  $ samtools index sample.2.sorted.bam
 
   # merge both mate BAM files into one new BAM file
-  $ samtools merge hek293.sorted.bam hek293.1.sorted.bam hek293.2.sorted.bam
+  $ samtools merge merged_sample.bam sample.sorted.bam sample.1.sorted.bam sample.2.sorted.bam
 
   # re-index the newly aggregated BAM file
-  $ samtools index hek293.sorted.bam
+  $ samtools index merged_sample.bam
 
 
 4. Running FUCHS
@@ -204,11 +204,10 @@ Run FUCHS to start the pipeline which will extract reads, check mate status, det
 
 .. code-block:: bash
 
-  # if BWA/CIRI was used, -c, -m, and -j may be skipped
-  # specify to skip the first step -sS step1 and specify the circIDs file
+  # using STAR/DCC Input
+  $ FUCHS -r 2 -q 2 -p ensembl -e 2 -T ~/tmp -D CircRNACount -J sample/Chimeric.out.junction -F sample.1/Chimeric.out.junction -R sample.2/Chimeric.out.junction.fixed -B merged_sample.sorted.bam -A [annotation].bed -N sample
 
-  $ FUCHS -r 4 -q 2 -p refseq -e 3 -c CircRNACount -m hek293.mate1.Chimeric.out.junction.fixed -j hek293.mate2.Chimeric.out.junction.fixed mock hek293.sorted.bam hg38.refseq.bed FUCHS/ hek293
-
+  # if BWA/CIRI was used, use -C to specify the circIDS list (omit -D, -J, -F and -R)
 
 5. Optional FUCHS modules
 ---------------------------
@@ -217,10 +216,10 @@ Run the additional module guided_denovo_circle_structure_parallel.py to obtain a
 
 .. code-block:: bash
 
-  $ guided_denovo_circle_structure_parallel -c 18 -A hg38.RefSeq.exons.bed FUCHS/ hek293
+  $ guided_denovo_circle_structure_parallel -c 18 -A [annotatation].bed -I FUCHS/output/folder -N sample
 
-  # FUCHS/ corresponds to the output directory of the FUCHS pipeline
-  # hek293 corresponds to your sample name, just as specified for the pipeline
+  # FUCHS/output/folder corresponds to the output directory of the FUCHS pipeline
+  # sample corresponds to your sample name, just as specified for the pipeline
 
 
 **That's all folks**
