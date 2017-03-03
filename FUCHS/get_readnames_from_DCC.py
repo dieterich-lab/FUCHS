@@ -67,16 +67,10 @@ class get_readnames_from_DCC(object):
 	    all_reads = list(set(reduce(lambda x, y: x + y, reads[circ].values(), [])))
 	    if is_paired:
 		for read in all_reads:
-		    if read in reads[circ]['paired'] and read in reads[circ]['mate1'] and not read in reads[circ]['mate2']:
-			unique_reads[circ] += [read]
-		    elif read in reads[circ]['paired'] and read in reads[circ]['mate2'] and not read in reads[circ]['mate1']:
-			unique_reads[circ] += [read]
-		    elif read in reads[circ]['mate2'] and read in reads[circ]['mate1'] and not read in reads[circ]['paired']:
-			unique_reads[circ] += [read]
-		    elif read in reads[circ]['paired'] and not read in reads[circ]['mate1'] and not read in reads[circ]['mate2']:
-			unique_reads[circ] += [read]
+		    if read in reads[circ]['paired'] and read in reads[circ]['mate1'] and read in reads[circ]['mate2']:
+			print('false positive read %s in %s' %(read, circ))
 		    else:
-			print('false positive read %s' %(read))
+			unique_reads[circ] += [read]
 	    else:
 		unique_reads[circ] += all_reads
 	return(unique_reads)
