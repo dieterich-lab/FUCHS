@@ -68,17 +68,17 @@ class get_readnames_from_DCC(object):
 	    if is_paired:
 		for read in all_reads:
 		    if read in reads[circ]['paired'] and read in reads[circ]['mate1'] and not read in reads[circ]['mate2']:
-			unique_reads += [read]
+			unique_reads[circ] += [read]
 		    elif read in reads[circ]['paired'] and read in reads[circ]['mate2'] and not read in reads[circ]['mate1']:
-			unique_reads += [read]
+			unique_reads[circ] += [read]
 		    elif read in reads[circ]['mate2'] and read in reads[circ]['mate1'] and not read in reads[circ]['paired']:
-			unique_reads += [read]
+			unique_reads[circ] += [read]
 		    elif read in reads[circ]['paired'] and not read in reads[circ]['mate1'] and not read in reads[circ]['mate2']:
-			unique_reads += [read]
+			unique_reads[circ] += [read]
 		    else:
 			print('false positive read %s' %(read))
 	    else:
-		unique_reads += all_reads
+		unique_reads[circ] += all_reads
 	return(unique_reads)
 
     def write_circles(self, reads, outputfile):
@@ -94,14 +94,14 @@ class get_readnames_from_DCC(object):
 
         circles = self.read_circrna_count(self.circle_file)
         junctions = {}
-        junctions = self.read_junction_file(self.paired, junctions)
+        junctions = self.read_junction_file(self.junction_file, junctions)
         if not self.mate1 == 'none':
 	    junctions = self.read_mate_junction_file(self.mate1, junctions, 'mate1')
         if not self.mate2 == 'none':
             junctions = self.read_mate_junction_file(self.mate2, junctions, 'mate2')
         junctions = self.filter_circles_by_circID(circles, junctions)
         if not self.mate1 == 'none' and not self.mate2 == 'none':
-	    unique_reads = self.filter_circles_by_mate(junctions, True)
+	    unique_reads = self.filter_reads_by_mate(junctions, True)
 	else:
-	    unique_reads = self.filter_circles_by_mate(junctions, False)
-        self.write_circles(unique_reads, '%s.reads.txt' % self.paired)
+	    unique_reads = self.filter_reads_by_mate(junctions, False)
+        self.write_circles(unique_reads, '%s.reads.txt' % self.junction_file)
