@@ -62,8 +62,8 @@ def main():
     circles = os.path.expanduser(args.circlefile)
     circle_ids = os.path.expanduser(args.CircRNACount)
     paired = os.path.expanduser(args.chimeric_junction) # not the greatest naming scheme
-    junctionfile = os.path.expanduser(args.mate1) # not the greatest naming scheme
-    mates = os.path.expanduser(args.mate2) # not the greatest naming scheme
+    mate1 = os.path.expanduser(args.mate1)
+    mate2 = os.path.expanduser(args.mate2)
     bamfile = os.path.expanduser(args.bamfile)
     bedfile = os.path.expanduser(args.bedfile)
     outfolder = os.path.expanduser(args.out_folder)
@@ -120,18 +120,18 @@ def main():
 	print('ERROR, no such file or directory: %s' %(paired))
 	quit()
     
-    if not mates == 'none' and not os.path.isabs(mates):
-	mates = os.path.abspath(os.path.join(os.getcwd(), mates))
-	print('changed mate2.Chimeric.junction.out file to %s\n' %(mates))
-    if not mates == 'none' and not os.path.exists(mates):
-	print('ERROR, no such file or directory: %s' %(mates))
+    if not mate2 == 'none' and not os.path.isabs(mate2):
+	mate2 = os.path.abspath(os.path.join(os.getcwd(), mate2))
+	print('changed mate2.Chimeric.junction.out file to %s\n' %(mate2))
+    if not mate2 == 'none' and not os.path.exists(mate2):
+	print('ERROR, no such file or directory: %s' %(mate2))
 	quit()
 
-    if not junctionfile == 'none' and not os.path.isabs(junctionfile):
-	junctionfile = os.path.abspath(os.path.join(os.getcwd(), junctionfile))
-	print('changed mate1.Chimeric.junction.out file to %s\n' %(junctionfile))
-    if not junctionfile == 'none' and not os.path.exists(junctionfile):
-	print('ERROR, no such file or directory: %s' %(junctionfile))
+    if not mate1 == 'none' and not os.path.isabs(mate1):
+	mate1 = os.path.abspath(os.path.join(os.getcwd(), mate1))
+	print('changed mate1.Chimeric.junction.out file to %s\n' %(mate1))
+    if not mate1 == 'none' and not os.path.exists(mate1):
+	print('ERROR, no such file or directory: %s' %(mate1))
 	quit()
     
     if not os.path.isabs(bamfile):
@@ -178,10 +178,10 @@ def main():
     O.close()
     if not 'step1' in skipped_steps:
 
-        circles = "%s.reads.txt" % junctionfile
+        circles = "%s.reads.txt" % paired
         if not os.path.isfile(circles):
 	    import get_readnames_from_DCC as get_readnames
-	    names = get_readnames.get_readnames_from_DCC(mates, circle_ids, junctionfile)
+	    names = get_readnames.get_readnames_from_DCC(circle_ids,paired ,mate1, mate2)
 	    names.run()
 	else:
 	    O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'a')

@@ -27,7 +27,7 @@ class get_coverage_profile(object):
         pybedtools.set_tempdir(tmp_folder)
 
     # define functions
-    def circle_exon_count(self, bamfile2, bedfile, exon_index, split_character, platform):
+    def circle_exon_count(self, bamfile2, bedfile, exon_index, split_character, platform, coordinates):
 
         # does what I think it does, adjust to collapse different transcripts from the same gene,
         # choose transcript describing the circle best
@@ -36,6 +36,7 @@ class get_coverage_profile(object):
         """
         x = pybedtools.example_bedtool(bamfile2)
         b = pybedtools.example_bedtool(bedfile)
+        b = b.filter(lambda b: b.chrom == coordinates[0] and b.start >= coordinates[1] and b.end <= coordinates[2])
         y = x.intersect(b, bed=True, wo=True, split=True)
         transcripts = {}
         found_features = []
@@ -289,7 +290,7 @@ class get_coverage_profile(object):
                 # open bed feature file
                 b = pybedtools.example_bedtool(self.bedfile)
                 # get read counts for each exon in circle
-                exon_counts, found_features = self.circle_exon_count(bamfile2, self.bedfile, self.exon_index, self.split_character, self.platform)
+                exon_counts, found_features = self.circle_exon_count(bamfile2, self.bedfile, self.exon_index, self.split_character, self.platform, circle_id)
                 if len(exon_counts) > 0:
                     # choose best fitting transcript
                     transcript_id = self.choose_transcript(exon_counts)

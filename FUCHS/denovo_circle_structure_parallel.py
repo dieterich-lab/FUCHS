@@ -274,7 +274,7 @@ def run_denovo_exon_chain_reconstruction(f, folder, outfile):
         num_reads = int(f.split('_')[-1].split('.')[0].replace('reads', ''))
         bamfile = '%s/%s' % (folder, f)
         # load bamfile
-        READS = load_bamfile(bamfile)
+        READS = load_bamfile(bamfile, circ_coordinates)
         READS = filter_reads(READS, circ_coordinates)
         Introns = get_introns(READS)
         if len(Introns) > 0:
