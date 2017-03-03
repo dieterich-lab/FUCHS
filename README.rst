@@ -60,7 +60,33 @@ Note that STARlong is not mapping chimeric reads correctly.
 
 .. code-block:: bash
 
-  $ STAR --readFilesCommand zcat --runThreadN 18 --genomeDir [genome] --outSAMtype BAM SortedByCoordinate --readFilesIn [sample]_1.fastq.gz ([sample]_2.fastq.gz) --outFileNamePrefix [sample]  --quantMode GeneCounts --genomeLoad NoSharedMemory --outReadsUnmapped Fastx --outSJfilterOverhangMin 15 15 15 15 --alignSJoverhangMin 15 --alignSJDBoverhangMin 10 --outFilterMultimapNmax 20 --outFilterScoreMin 1   --outFilterMismatchNmax 999 --outFilterMismatchNoverLmax 0.05 --outFilterMatchNminOverLread 0.7 --alignIntronMin 20 --alignIntronMax 1000000 --alignMatesGapMax 1000000  --chimSegmentMin 15  --chimScoreMin 15   --chimScoreSeparation 10  --chimJunctionOverhangMin 15 --twopassMode Basic --alignSoftClipAtReferenceEnds No --outSAMattributes NH HI AS nM NM MD jM jI XS  --sjdbGTFfile [annotation].gtf
+  $ STAR --readFilesCommand zcat --runThreadN 18 
+         --genomeDir [genome] 
+         --outSAMtype BAM SortedByCoordinate 
+         --readFilesIn [sample]_1.fastq.gz ([sample]_2.fastq.gz) 
+         --outFileNamePrefix [sample]  
+         --quantMode GeneCounts 
+         --genomeLoad NoSharedMemory 
+         --outReadsUnmapped Fastx 
+         --outSJfilterOverhangMin 15 15 15 15 
+         --alignSJoverhangMin 15 
+         --alignSJDBoverhangMin 10 
+         --outFilterMultimapNmax 20 
+         --outFilterScoreMin 1   
+         --outFilterMismatchNmax 999 
+         --outFilterMismatchNoverLmax 0.05 
+         --outFilterMatchNminOverLread 0.7 
+         --alignIntronMin 20 
+         --alignIntronMax 1000000 
+         --alignMatesGapMax 1000000  
+         --chimSegmentMin 15  
+         --chimScoreMin 15   
+         --chimScoreSeparation 10  
+         --chimJunctionOverhangMin 15 
+         --twopassMode Basic 
+         --alignSoftClipAtReferenceEnds No 
+         --outSAMattributes NH HI AS nM NM MD jM jI XS  
+         --sjdbGTFfile [annotation].gtf
 
 
 
@@ -141,11 +167,6 @@ After performing all preparation steps DCC can now be started:
         -G \ # also run host gene expression
         -A [Reference].fa \ # name of the fasta genome reference file; must be indexed, i.e. a .fai file must be present
 
-  # For single end, non-stranded data:
-  $ DCC @samplesheet -D -R [Repeats].gtf -an [Annotation].gtf -F -M -Nr 2 2 -fg -G -A [Reference].fa
-
-  $ DCC @samplesheet -mt1 @mate1 -mt2 @mate2 -D -S -R [Repeats].gtf -an [Annotation].gtf -Pi -F -M -Nr 2 2 -fg
-
   # For details on the parameters please refer to the help page of DCC:
   $ DCC -h
 
@@ -206,9 +227,18 @@ Run FUCHS to start the pipeline which will extract reads, check mate status, det
 .. code-block:: bash
 
   # using STAR/DCC Input
-  $ FUCHS -r 2 -q 2 -p ensembl -e 2 -T ~/tmp -D CircRNACount -J sample/Chimeric.out.junction -F sample.1/Chimeric.out.junction -R sample.2/Chimeric.out.junction.fixed -B merged_sample.sorted.bam -A [annotation].bed -N sample
+  $ FUCHS -r 2 -q 2 -p ensembl -e 2 -T ~/tmp 
+	  -D CircRNACount 
+	  -J sample/Chimeric.out.junction 
+	  -F sample.1/Chimeric.out.junction 
+	  -R sample.2/Chimeric.out.junction.fixed 
+	  -B merged_sample.sorted.bam 
+	  -A [annotation].bed 
+	  -N sample 
 
   # if BWA/CIRI was used, use -C to specify the circIDS list (omit -D, -J, -F and -R)
+  # For details on the parameters please refer to the help page of FUCHS:
+  $ FUCHS --help
 
 5. Optional FUCHS modules
 ---------------------------
