@@ -70,6 +70,7 @@ Note that STARlong is not mapping chimeric reads correctly.
 Note: the mate assignments should be consistent throughout the mapping and circular RNA detection process. In the following case, SamplePairedRead_1.fastq.gz is the first mate which also was the first mate in the STAR call.
 
 .. code-block:: bash
+
   # remap unmapped reads as single end to obtain double breakpoint fragments
   
   $ gzip sample/Unmapped.out.mate1
