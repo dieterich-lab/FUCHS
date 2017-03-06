@@ -66,7 +66,7 @@ def main():
     mate2 = os.path.expanduser(args.mate2)
     bamfile = os.path.expanduser(args.bamfile)
     bedfile = os.path.expanduser(args.bedfile)
-    outfolder = os.path.expanduser(args.out_folder)
+    outfolder = os.path.expanduser(args.out_folder) + '/'
     sample = args.sample
     
     cutoff_reads = args.reads
@@ -75,7 +75,7 @@ def main():
     split_character = args.split_character
     platform = args.ref_platform
     skipped_steps = args.skipped_steps.split(',')
-    tmp_folder = os.path.expanduser(args.tmp_folder)
+    tmp_folder = os.path.expanduser(args.tmp_folder) + '/'
     
     # start writing down FUCHS time for retracing
     print('Started FUCHS at %s' %(datetime.datetime.now()))
@@ -144,17 +144,15 @@ def main():
     if not os.path.isabs(outfolder):
 	outfolder = os.path.abspath(os.path.join(os.getcwd(), outfolder))
 	print('changed output folder to %s\n' %(outfolder))
-    if not os.path.exists(outfolder):
-	print('ERROR, no such file or directory: %s' %(outfolder))
-	quit()
-	
+    if not os.path.isdir(outfolder):
+	os.mkdir(outfolder)
+    
     if not os.path.isabs(tmp_folder):
 	tmp_folder = os.path.abspath(os.path.join(os.getcwd(), tmp_folder))
 	print('changed tmp folder to %s\n' %(tmp_folder))
-    if not os.path.exists(tmp_folder):
-	print('ERROR, no such file or directory: %s' %(tmp_folder))
-	quit()
-	
+    if not os.path.isdir(tmp_folder):
+	os.mkdir(tmp_folder)
+    
     if not os.path.isabs(bedfile):
 	bedfile = os.path.abspath(os.path.join(os.getcwd(), bedfile))
 	print('changed bedfile file to %s\n' %(bedfile))
@@ -171,7 +169,7 @@ def main():
     
     print "The following analysis steps will be skipped: " + '%s' % ', '.join(map(str, skipped_steps))
 
-    # Step 1: (optional) if DCC was used, extract circle read names from junction file 
+    # Step 1: (optional) if DCC was used, extract circle read names from junction file    
     O = open('%s/%s.logfile.%s' %(outfolder, sample, dt.replace(' ', '_')), 'w')
     O.write('FUCHS is starting at %s\n\n'  %(dt))
     O.write('%s: starting to get readnames from Chimeric.junction.out\n' %(datetime.datetime.now()))
