@@ -57,7 +57,7 @@ def get_introns(reads):
 
 
 def connect_introns(introns, circ_coordinates):
-    transcripts = {0: [(circ_coordinates[0], circ_coordinates[1] - 2, circ_coordinates[1]-1)]}
+    transcripts = {0: [(circ_coordinates[0], circ_coordinates[1] - 1, circ_coordinates[1])]}
     sorted_introns = sorted(introns.keys())
     for i in sorted_introns:
         # print(i)
@@ -110,7 +110,8 @@ def get_coverage_profile(bamfile, circ_coordinates, transcripts):
                     coverage[intron[1] - circ_coordinates[1]:intron[2] - circ_coordinates[1]]) / float(
                     intron[2] - intron[1])
             if not (i + 1) == len(transcripts[t]):
-                transcript_coverage[t]['exons'][(intron[0], intron[2]+1, transcripts[t][i + 1][1] -1)] = sum(
+		print(intron)
+                transcript_coverage[t]['exons'][(intron[0], intron[2], transcripts[t][i + 1][1] -1)] = sum(
                     coverage[intron[2] - circ_coordinates[1]:transcripts[t][i + 1][1] - circ_coordinates[1]]) / float(
                     transcripts[t][i + 1][1] - intron[2])
     return (transcript_coverage, coverage, split_coverage)
@@ -129,7 +130,7 @@ def filter_out_exons(transcript_coverage, split_coverage, circ_coordinates):  # 
                 if 0 in coverage and not (coverage[0] == 0 or coverage[-1] == 0):
                     breakpoint = coverage.index(0)
                     new_end = exon[1] + coverage.index(0) - 1
-                    new_start = exon[2] - (list(reversed(coverage)).index(0))
+                    new_start = exon[2] - (list(reversed(coverage)).index(0))-1
                     avg_coverage = sum(coverage[:coverage.index(0)]) / float(coverage.index(0))
                     avg_coverage_right = sum(list(reversed(coverage))[:list(reversed(coverage)).index(0)]) / float(
                         list(reversed(coverage)).index(0))
@@ -190,7 +191,7 @@ def infer_missing_structure(transcripts, coordinates, bedfile):
                 features = B.intersect(missing_region)
                 unsuported_exons = {}
                 for f in features:
-                    transcripts[t]['exons'][(f[0], int(f[1]), int(f[2]))] = 0
+                    transcripts[t]['exons'][(str(f[0]), int(f[1]), int(f[2]))] = 0
         merged = [1]
         counter = 0
         while len(merged) > 0 or counter < 100:
@@ -230,7 +231,7 @@ def write_bed12(outfile, transcript_coverage, circ_coordinates, coverage, intron
     O = open(outfile, 'a')
     for t in transcript_coverage:
         O.write('%s\t%s\t%s\t%s:%s-%s|%s|%s\t' % (
-        circ_coordinates[0], circ_coordinates[1]-1, circ_coordinates[2], circ_coordinates[0], circ_coordinates[1],
+        circ_coordinates[0], circ_coordinates[1], circ_coordinates[2], circ_coordinates[0], circ_coordinates[1],
         circ_coordinates[2], t, 1 - (coverage.count(0) / float(len(coverage)))))
         transcript_confidence = []
         if len(transcript_coverage[t]['introns']) > 0:
@@ -243,15 +244,15 @@ def write_bed12(outfile, transcript_coverage, circ_coordinates, coverage, intron
             if len(transcript_coverage[t]['exons']) > 0:
                 O.write('%s\t.\t%s\t%s\t255,0,0\t%s\t' % (
                 int(sum(transcript_coverage[t]['exons'].values()) / float(len(transcript_coverage[t]['exons']))),
-                circ_coordinates[1]-1, circ_coordinates[2], len(transcript_coverage[t]['exons'])))
+                circ_coordinates[1], circ_coordinates[2], len(transcript_coverage[t]['exons'])))
             else:
                 O.write('0\t.\t%s\t%s\t255,0,0\t%s\t' % (
-                circ_coordinates[1]-1, circ_coordinates[2], len(transcript_coverage[t]['exons'])))
+                circ_coordinates[1], circ_coordinates[2], len(transcript_coverage[t]['exons'])))
         exon_length = []
         exon_location = []
         sorted_exons = sorted(transcript_coverage[t]['exons'])
         for e in sorted_exons:
-            exon_length += ['%s' % (e[2] - e[1]+1)]
+            exon_length += ['%s' % (e[2] - e[1])]
             exon_location += ['%s' % (e[1] - circ_coordinates[1])]
         O.write('%s\t%s\n' % (','.join(exon_length), ','.join(exon_location)))
     O.close()
@@ -270,7 +271,7 @@ def write_bed6(transcript_coverage, outfile, circ_coordinates, coverage):
     sorted_exons = sorted(exons.keys())
     for e in sorted_exons:
         O.write('%s\t%s\t%s\t%s:%s-%s|%s\t%s\t.\n' % (
-        e[0], e[1]-1, e[2], circ_coordinates[0], circ_coordinates[1], circ_coordinates[2], ','.join(exons[e]),
+        e[0], e[1], e[2], circ_coordinates[0], circ_coordinates[1], circ_coordinates[2], ','.join(exons[e]),
         int(sum(coverage[e[1] - circ_coordinates[1]:e[2] - circ_coordinates[1]]) / float(e[2] - e[1]))))
     O.close()
     return
@@ -321,6 +322,7 @@ def write_single_exon(outfile, coverage, circ_coordinates):
     O6.close()
     O12.close()
     return
+
 
 
 def run_denovo_exon_chain_reconstruction(f, folder, annotation, outfile):
