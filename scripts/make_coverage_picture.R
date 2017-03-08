@@ -43,7 +43,7 @@ smoothed = smoothing(D$coverage)
 png(paste(output_folder, circle_id, '_',transcript_name, '.png', sep = ''), type = 'cairo')
   plot(smoothed,
         type = 'h',
-        col = D$exon,
+        col = D$exon + 1,
         main = paste(circle_id, transcript_name, sep = '\n'),
         xlab = paste('Exon:', min(D$exon), '- Exon:',
         max(D$exon)),
