@@ -53,7 +53,7 @@ class detect_skipped_exons(object):
 
     def intersect_introns_with_bedfile(self, bedfile, reads, coordinates):
 	exons = pybedtools.example_bedtool(bedfile)
-	exons = exons.filter(lambda b: b.chrom == coordinates[0] and b.start >= coordinates[1] and b.end <= coordinates[2])
+	exons = exons.filter(lambda b: b.chrom == coordinates[0] and b.start >= coordinates[1]-1000 and b.end <= coordinates[2]+1000)
 	skipped_exons = {}
 	introns = {}
 	for lola in reads:

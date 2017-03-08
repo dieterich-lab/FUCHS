@@ -36,7 +36,7 @@ class get_coverage_profile(object):
         """
         x = pybedtools.example_bedtool(bamfile2)
         b = pybedtools.example_bedtool(bedfile)
-        b = b.filter(lambda b: b.chrom == coordinates[0] and b.start >= coordinates[1] and b.end <= coordinates[2])
+        b = b.filter(lambda b: b.chrom == coordinates[0] and b.start >= coordinates[1]-1000 and b.end <= coordinates[2]+1000)
         y = x.intersect(b, bed=True, wo=True, split=True)
         transcripts = {}
         found_features = []
