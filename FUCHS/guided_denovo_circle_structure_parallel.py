@@ -110,7 +110,6 @@ def get_coverage_profile(bamfile, circ_coordinates, transcripts):
                     coverage[intron[1] - circ_coordinates[1]:intron[2] - circ_coordinates[1]]) / float(
                     intron[2] - intron[1])
             if not (i + 1) == len(transcripts[t]):
-		print(intron)
                 transcript_coverage[t]['exons'][(intron[0], intron[2], transcripts[t][i + 1][1] -1)] = sum(
                     coverage[intron[2] - circ_coordinates[1]:transcripts[t][i + 1][1] - circ_coordinates[1]]) / float(
                     transcripts[t][i + 1][1] - intron[2])
@@ -269,9 +268,9 @@ def write_bed6(transcript_coverage, outfile, circ_coordinates, coverage):
             else:
                 exons[e] += ['%s' % (t)]
     sorted_exons = sorted(exons.keys())
-    for e in sorted_exons:
-        O.write('%s\t%s\t%s\t%s:%s-%s|%s\t%s\t.\n' % (
-        e[0], e[1], e[2], circ_coordinates[0], circ_coordinates[1], circ_coordinates[2], ','.join(exons[e]),
+    for i, e in enumerate(sorted_exons):
+        O.write('%s\t%s\t%s\t%s:%s-%s|%i|%s\t%s\t.\n' % (
+        e[0], e[1], e[2], circ_coordinates[0], circ_coordinates[1], circ_coordinates[2], i,','.join(exons[e]),
         int(sum(coverage[e[1] - circ_coordinates[1]:e[2] - circ_coordinates[1]]) / float(e[2] - e[1]))))
     O.close()
     return
@@ -288,9 +287,13 @@ def get_coverage(circ_coordinates, bamfile):
     return (coverage)
 
 
-def write_single_exon(outfile, coverage, circ_coordinates):
-    O12 = open('%sinferred_12.bed' % (outfile), 'a')
-    O6 = open('%sinferred_6.bed' % (outfile), 'a')
+def write_single_exon(outfile, coverage, circ_coordinates, annotation):
+    if not annotation == '.':
+	O12 = open('%sinferred_12.bed' % (outfile), 'a')
+	O6 = open('%sinferred_6.bed' % (outfile), 'a')
+    else:
+	O12 = open('%s12.bed' %(outfile), 'a')
+	O6 = open('%s6.bed' %(outfile), 'a')
     if 0 in coverage and sum(coverage) > 0:
         breakpoints = (
         circ_coordinates[1] + coverage.index(0), circ_coordinates[2] - (list(reversed(coverage)).index(0)))
@@ -303,10 +306,10 @@ def write_single_exon(outfile, coverage, circ_coordinates):
             coverage[breakpoints[1] - circ_coordinates[1]:]) / float(circ_coordinates[2] - breakpoints[1])) / 2),
         circ_coordinates[1], circ_coordinates[2], coverage.index(0), circ_coordinates[2] - breakpoints[1],
         breakpoints[1] - circ_coordinates[1]))
-        O6.write('%s\t%s\t%s\t%s:%s-%s|0\t%s\t.\n' % (
+        O6.write('%s\t%s\t%s\t%s:%s-%s|0|0\t%s\t.\n' % (
         exon1[0], exon1[1], exon1[2], circ_coordinates[0], circ_coordinates[1], circ_coordinates[2],
         int(sum(coverage[:coverage.index(0)]) / float(coverage.index(0)))))
-        O6.write('%s\t%s\t%s\t%s:%s-%s|0\t%s\t.\n' % (
+        O6.write('%s\t%s\t%s\t%s:%s-%s|1|0\t%s\t.\n' % (
         exon2[0], exon2[1], exon2[2], circ_coordinates[0], circ_coordinates[1], circ_coordinates[2],
         int(sum(coverage[breakpoints[1] - circ_coordinates[1]:]) / float(circ_coordinates[2] - breakpoints[1]))))
     elif not 0 in coverage:
@@ -314,7 +317,7 @@ def write_single_exon(outfile, coverage, circ_coordinates):
         circ_coordinates[0], circ_coordinates[1], circ_coordinates[2], circ_coordinates[0], circ_coordinates[1],
         circ_coordinates[2], 1 - (coverage.count(0) / float(len(coverage))), int(sum(coverage) / float(len(coverage))),
         circ_coordinates[1], circ_coordinates[2], circ_coordinates[2] - circ_coordinates[1]))
-        O6.write('%s\t%s\t%s\t%s:%s-%s|0\t%s\t.\n' % (
+        O6.write('%s\t%s\t%s\t%s:%s-%s|0|0\t%s\t.\n' % (
         circ_coordinates[0], circ_coordinates[1], circ_coordinates[2], circ_coordinates[0], circ_coordinates[1],
         circ_coordinates[2], int(sum(coverage) / float(len(coverage)))))
     else:
@@ -344,13 +347,16 @@ def run_denovo_exon_chain_reconstruction(f, folder, annotation, outfile):
             TC = filter_out_exons(TC, splitCov, circ_coordinates)
             if not annotation == '.':
                 TC = infer_missing_structure(TC, circ_coordinates, annotation)
-            # write out results to 3 different files, this will probably have to be adjuste
-            write_bed12('%sinferred_12.bed' % (outfile), TC, circ_coordinates, Cov, Introns)
-            write_bed6(TC, '%sinferred_6.bed' % (outfile), circ_coordinates, splitCov)
+		# write out results to 3 different files, this will probably have to be adjuste
+		write_bed12('%sinferred_12.bed' % (outfile), TC, circ_coordinates, Cov, Introns)
+		write_bed6(TC, '%sinferred_6.bed' % (outfile), circ_coordinates, splitCov)
+	    else:
+		write_bed12('%s12.bed' % (outfile), TC, circ_coordinates, Cov, Introns)
+		write_bed6(TC, '%s6.bed' % (outfile), circ_coordinates, splitCov)
         else:
             Cov = get_coverage(circ_coordinates, bamfile)
             if not 0 in Cov or annotation == '.':
-                write_single_exon(outfile, Cov, circ_coordinates)
+                write_single_exon(outfile, Cov, circ_coordinates, annotation)
             elif sum(Cov) > 0:
                 breakpoints = (circ_coordinates[1] + Cov.index(0), circ_coordinates[2] - (list(reversed(Cov)).index(0)))
                 TC = {
@@ -360,9 +366,13 @@ def run_denovo_exon_chain_reconstruction(f, folder, annotation, outfile):
                                 Cov.index(0)), (circ_coordinates[0], breakpoints[1], circ_coordinates[2]): sum(
                                 Cov[breakpoints[1] - circ_coordinates[1]:]) / float(
                                 circ_coordinates[2] - breakpoints[1])}}}
-                TC = infer_missing_structure(TC, circ_coordinates, annotation)
-                write_bed12('%sinferred_12.bed' % (outfile), TC, circ_coordinates, Cov, Introns)
-                write_bed6(TC, '%sinferred_6.bed' % (outfile), circ_coordinates, Cov)
+                if not annotation == '.':
+		    TC = infer_missing_structure(TC, circ_coordinates, annotation)
+		    write_bed12('%sinferred_12.bed' % (outfile), TC, circ_coordinates, Cov, Introns)
+		    write_bed6(TC, '%sinferred_6.bed' % (outfile), circ_coordinates, Cov)
+		else:
+		    write_bed12('%s12.bed' % (outfile), TC, circ_coordinates, Cov, Introns)
+		    write_bed6(TC, '%s6.bed' % (outfile), circ_coordinates, Cov)
             else:
                 print('no reads mapped for %s' % (f))
     return (f, len(Introns))
@@ -378,6 +388,7 @@ if __name__ == '__main__':
     import pybedtools
     import argparse
     import tempfile
+    import time
 
     import os
     import multiprocessing
@@ -398,27 +409,60 @@ if __name__ == '__main__':
 
     # parse arguments
     args = parser.parse_args()
-
-    infolder = args.inputfolder
+    
+    infolder = os.path.expanduser(args.inputfolder) + '/'
     sample = args.sample
-    annotation_file = args.annotation
+    annotation_file = os.path.expanduser(args.annotation)
     num_cpus = args.num_cpus
-    tmp_folder = args.tmp_folder
+    tmp_folder = os.path.expanduser(args.tmp_folder) + '/'
+
+    # correcting relative paths
+    start_time = time.time()
+    working_dir = os.getcwd()
+
+    if not os.path.isabs(tmp_folder):
+	tmp_folder = os.path.abspath(os.path.join(working_dir, tmp_folder))
+	print('changed tmp folder to %s\n' %(tmp_folder))
+    if not os.path.isdir(tmp_folder):
+	os.mkdir(tmp_folder)
+    
+    if not os.path.isabs(infolder):
+	infolder = os.path.abspath(os.path.join(working_dir, infolder))
+	print('changed inputfolder folder to %s\n' %(infolder))
+    if not os.path.isdir(infolder):
+ 	print('ERROR, no such file or directory: %s' %(infolder))
+	quit()
 
     # set temp folder. foldr needs to exist!
     tempfile.tempdir = tmp_folder
     pybedtools.set_tempdir(tmp_folder)
 
     folder = '%s/%s/' % (infolder, sample)
+    if not os.path.isabs(folder):
+	folder = os.path.abspath(os.path.join(working_dir, folder))
+	print('changed inputfolder folder to %s\n' %(folder))
+    if not os.path.isdir(folder):
+	print('ERROR, no such file or directory: %s' %(folder))
+	quit()
+    
     outfile = '%s/%s_exon_chain_' % (infolder, sample)
 
-    output = open('%sinferred_12.bed' % (outfile), 'w')
-    output.write('#bed12\n')
-    output.close()
-
-    output = open('%sinferred_6.bed' % (outfile), 'w')
-    output.write('#bed6\n')
-    output.close()
+    if not annotation_file == '.':
+	output = open('%sinferred_12.bed' % (outfile), 'w')
+	output.write('#bed12\n')
+	output.close()
+	
+	output = open('%sinferred_6.bed' % (outfile), 'w')
+	output.write('#bed6\n')
+	output.close()
+    else:
+	output = open('%s12.bed' % (outfile), 'w')
+	output.write('#bed12\n')
+	output.close()
+	
+	output = open('%s6.bed' % (outfile), 'w')
+	output.write('#bed6\n')
+	output.close()
 
     # Start my pool
     pool = multiprocessing.Pool(num_cpus)
@@ -446,3 +490,5 @@ if __name__ == '__main__':
     pool.close()
     pool.join()
     pybedtools.helpers.cleanup()
+    print("guided_denovo took --- %s minutes ---\n\n" % (round((time.time() - start_time)/60.0)))
+
