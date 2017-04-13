@@ -70,7 +70,8 @@ def connect_introns(introns, circ_coordinates):
             st = sorted(transcripts)
             for t in st:
                 ti = max(transcripts) + 1
-                transcripts[ti] = transcripts[t][:-1] + [i]
+                if not (transcripts[t][:-1] + [i]) in transcripts.values():
+		    transcripts[ti] = transcripts[t][:-1] + [i]
     for t in transcripts:
         transcripts[t] += [(circ_coordinates[0], circ_coordinates[2]+1, circ_coordinates[2] + 2)]
     tmp = {}
