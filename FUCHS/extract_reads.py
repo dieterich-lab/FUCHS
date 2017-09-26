@@ -8,6 +8,17 @@
 import os
 import pysam
 import tempfile
+import copy_reg
+import types
+
+def _pickle_method(m):
+    if m.im_self is None:
+        return getattr, (m.im_class, m.im_func.func_name)
+    else:
+        return getattr, (m.im_self, m.im_func.func_name)
+
+copy_reg.pickle(types.MethodType, _pickle_method)
+
 
 class extract_reads(object):
     def __init__(self, reads, mapq, circlefile, bamfile, outputfolder, sample, tmp_folder):
