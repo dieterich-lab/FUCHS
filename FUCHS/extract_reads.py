@@ -83,6 +83,17 @@ class extract_reads(object):
         samfile.close()
         return
 
+    def run_parallel(self, f):
+        # no do re-sort sorted files and create duplicates
+        if f.split('.')[-1] == 'bam' and "sorted" not in f:
+            pysam.sort("-o",
+                       '%s' % (f.replace('.bam', '.sorted.bam')),
+                       '%s' % (f)
+                       )
+
+            pysam.index('%s' % (f.replace('.bam', '.sorted.bam')))
+            os.system('rm %s' % (f))
+
     def run(self):
 
         tempfile.tempdir = self.tmp_folder  # set global tmp dir
@@ -110,15 +121,12 @@ class extract_reads(object):
         print('%s circles passed your thresholds of at least %s reads with at least a mapq of %s\n\n' % (
             actual_bams, self.cutoff, self.mapq_cutoff))
 
-        # we iterate over the "wrong" file list but exclude sorted files later
-        for f in files:
-            # no do re-sort sorted files and create duplicates
-            if f.split('.')[-1] == 'bam' and "sorted" not in f:
+        import multiprocessing
 
-                pysam.sort("-o",
-                           '%s' % (f.replace('.bam', '.sorted.bam')),
-                           '%s' % (f)
-                           )
+        try:
+            cpus = 40
+        except NotImplementedError:
+            cpus = 40  # arbitrary default
 
-                pysam.index('%s' % (f.replace('.bam', '.sorted.bam')))
-                os.system('rm %s' % (f))
+        pool = multiprocessing.Pool(processes=cpus)
+        print pool.map(self.run_parallel, files)
