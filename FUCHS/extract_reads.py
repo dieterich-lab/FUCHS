@@ -83,18 +83,20 @@ class extract_reads(object):
         samfile.close()
         return
 
-    def run_parallel(self, f):
-        # no do re-sort sorted files and create duplicates
-        if f.split('.')[-1] == 'bam' and "sorted" not in f:
-            pysam.sort("-o",
-                       '%s' % (f.replace('.bam', '.sorted.bam')),
-                       '%s' % (f)
-                       )
 
-            pysam.index('%s' % (f.replace('.bam', '.sorted.bam')))
-            os.system('rm %s' % (f))
 
     def run(self):
+
+        def run_parallel(f):
+            # no do re-sort sorted files and create duplicates
+            if f.split('.')[-1] == 'bam' and "sorted" not in f:
+                pysam.sort("-o",
+                           '%s' % (f.replace('.bam', '.sorted.bam')),
+                           '%s' % (f)
+                           )
+
+                pysam.index('%s' % (f.replace('.bam', '.sorted.bam')))
+                os.system('rm %s' % (f))
 
         tempfile.tempdir = self.tmp_folder  # set global tmp dir
 
@@ -129,4 +131,4 @@ class extract_reads(object):
             cpus = 40  # arbitrary default
 
         pool = multiprocessing.Pool(processes=cpus)
-        print pool.map(self.run_parallel, files)
+        print pool.map(run_parallel, files)
