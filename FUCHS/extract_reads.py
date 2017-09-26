@@ -87,7 +87,7 @@ class extract_reads(object):
 
     def run(self):
 
-        def run_parallel(f):
+        def run_parallel(self, f):
             # no do re-sort sorted files and create duplicates
             if f.split('.')[-1] == 'bam' and "sorted" not in f:
                 pysam.sort("-o",
