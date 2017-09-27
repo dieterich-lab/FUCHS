@@ -8,20 +8,22 @@
 import os
 import pysam
 import tempfile
-import copy_reg
-import types
 
-def _pickle_method(m):
-    if m.im_self is None:
-        return getattr, (m.im_class, m.im_func.func_name)
-    else:
-        return getattr, (m.im_self, m.im_func.func_name)
 
-copy_reg.pickle(types.MethodType, _pickle_method)
+def run_parallel(f):
+    # no do re-sort sorted files and create duplicates
+    if f.split('.')[-1] == 'bam' and "sorted" not in f:
+        pysam.sort("-o",
+                   '%s' % (f.replace('.bam', '.sorted.bam')),
+                   '%s' % (f)
+                   )
+
+        pysam.index('%s' % (f.replace('.bam', '.sorted.bam')))
+        os.system('rm %s' % (f))
 
 
 class extract_reads(object):
-    def __init__(self, reads, mapq, circlefile, bamfile, outputfolder, sample, tmp_folder):
+    def __init__(self, reads, mapq, circlefile, bamfile, outputfolder, sample, tmp_folder, cpus):
 
         self.circles = circlefile
         self.bamfile = bamfile
@@ -30,6 +32,7 @@ class extract_reads(object):
         self.cutoff = reads
         self.mapq_cutoff = mapq
         self.tmp_folder = tmp_folder
+        self.cpus = cpus
 
     def read_circles(self, infile):
         """
@@ -45,7 +48,6 @@ class extract_reads(object):
                     reads[current_circle] = 0
         input_file.close()
         return circle_IDs, reads
-
 
     def load_alignment(self, infile, circle_reads, cutoff):
         """
@@ -66,7 +68,6 @@ class extract_reads(object):
                 reads[read.query_name][(read.reference_start, read.cigarstring, read.is_reverse)] = read
         samfile.close()
         return reads
-
 
     def write_circle_bam(self, reads, circles, cutoff, template, outfolder):
         """
@@ -89,25 +90,13 @@ class extract_reads(object):
                 # nothing was written to the bam file, delete it so that following steps don't operate
                 # on an empty file
                 if has_content == 0:
-                    os.remove("%s/%s_%sreads.bam" % (outfolder, circle.replace(':', '_').replace('|', '_'), len(circles[circle])))
+                    os.remove("%s/%s_%sreads.bam" % (
+                        outfolder, circle.replace(':', '_').replace('|', '_'), len(circles[circle])))
 
         samfile.close()
         return
 
-
-
     def run(self):
-
-        def run_parallel(self, f):
-            # no do re-sort sorted files and create duplicates
-            if f.split('.')[-1] == 'bam' and "sorted" not in f:
-                pysam.sort("-o",
-                           '%s' % (f.replace('.bam', '.sorted.bam')),
-                           '%s' % (f)
-                           )
-
-                pysam.index('%s' % (f.replace('.bam', '.sorted.bam')))
-                os.system('rm %s' % (f))
 
         tempfile.tempdir = self.tmp_folder  # set global tmp dir
 
@@ -120,7 +109,7 @@ class extract_reads(object):
             os.mkdir('%s/%s' % (self.outfolder, self.sample))
         self.write_circle_bam(reads, circle_info, self.cutoff, self.bamfile, '%s/%s' % (self.outfolder, self.sample))
         print('DONE writing circle bam files\n')
-        #files = os.listdir('%s/%s' % (self.outfolder, self.sample))
+        # files = os.listdir('%s/%s' % (self.outfolder, self.sample))
         import glob
 
         files = glob.glob('%s/%s/*.bam' % (self.outfolder, self.sample))
@@ -134,12 +123,7 @@ class extract_reads(object):
         print('%s circles passed your thresholds of at least %s reads with at least a mapq of %s\n\n' % (
             actual_bams, self.cutoff, self.mapq_cutoff))
 
-        import multiprocessing
+        from pathos.multiprocessing import ProcessingPool as Pool
 
-        try:
-            cpus = 40
-        except NotImplementedError:
-            cpus = 40  # arbitrary default
-
-        pool = multiprocessing.Pool(processes=cpus)
-        print pool.map(run_parallel, files)
+        pool = Pool(self.cpus)
+        pool.map(run_parallel, files)
