@@ -11,8 +11,43 @@ import pysam
 # script to identify circles where both mates map over the junction
 # length estimate is not correct for circRNAs exceeding the host-gene coordinates. need to fix this!
 
+
 class mate_information(object):
-    def __init__(self, platform, split_character, bedfile, outfolder, sample, tmp_folder):
+
+    def run_parallel(self, f):
+
+        internal_dict = {}
+
+        if f.split('.')[-1] == 'bam':
+            print(f)
+            circle_coordinates = ['_'.join(f.split('_')[0:-3]), int(f.split('_')[-3]),
+                                  int(f.split('_')[-2])]
+            num_reads = int(f.split('_')[-1].split('.')[0].replace('reads', ''))
+            mates, fragments = self.get_reads_from_bamfile('%s/%s' % (self.bamfolder, f), circle_coordinates)
+            mates = self.classify_reads(mates)
+            if not self.bedfile == 'none':
+                length = self.annotate_circle(circle_coordinates, self.bedfile, self.platform, self.split_character)
+            else:
+                length = {}
+            stats = self.get_statistics(mates)
+            internal_dict[f.split('.')[0]] = stats
+            if len(length) > 0:
+                internal_dict[f.split('.')[0]]['min_length'] = min(length.items(), key=lambda x: x[1])[1]
+                internal_dict[f.split('.')[0]]['max_length'] = max(length.items(), key=lambda x: x[1])[1]
+                internal_dict[f.split('.')[0]]['transcript_ids'] = ','.join(length.keys())
+            else:
+                internal_dict[f.split('.')[0]]['min_length'] = circle_coordinates[2] - circle_coordinates[1]
+                internal_dict[f.split('.')[0]]['max_length'] = circle_coordinates[2] - circle_coordinates[1]
+                internal_dict[f.split('.')[0]]['transcript_ids'] = 'not_annotated'
+
+            internal_dict[f.split('.')[0]]['circle_id'] = '%s_%s_%s' % (
+                circle_coordinates[0], circle_coordinates[1], circle_coordinates[2])
+            internal_dict[f.split('.')[0]]['num_reads'] = num_reads
+
+        return internal_dict
+
+
+    def __init__(self, platform, split_character, bedfile, outfolder, sample, tmp_folder, cpus):
 
         # parse arguments
         self.bamfolder = outfolder + sample
@@ -21,6 +56,8 @@ class mate_information(object):
         self.platform = platform
         self.split_character = split_character
         self.tmp_folder = tmp_folder
+        self.internal_dict = {}
+        self.cpus = cpus
 
         # set temp folder
         tempfile.tempdir = tmp_folder
@@ -92,35 +129,21 @@ class mate_information(object):
         return lengths
 
     def iterate_over_folder(self, inputfolder, bedfile, platform, split_character):
-        results = {}
         files = os.listdir(inputfolder)
-        for current_file in files:
-            if current_file.split('.')[-1] == 'bam':
-                print(current_file)
-                circle_coordinates = ['_'.join(current_file.split('_')[0:-3]), int(current_file.split('_')[-3]),
-                                      int(current_file.split('_')[-2])]
-                num_reads = int(current_file.split('_')[-1].split('.')[0].replace('reads', ''))
-                mates, fragments = self.get_reads_from_bamfile('%s/%s' % (inputfolder, current_file), circle_coordinates)
-                mates = self.classify_reads(mates)
-                if not bedfile == 'none':
-                    length = self.annotate_circle(circle_coordinates, bedfile, platform, split_character)
-                else:
-                    length = {}
-                stats = self.get_statistics(mates)
-                results[current_file.split('.')[0]] = stats
-                if len(length) > 0:
-                    results[current_file.split('.')[0]]['min_length'] = min(length.items(), key=lambda x: x[1])[1]
-                    results[current_file.split('.')[0]]['max_length'] = max(length.items(), key=lambda x: x[1])[1]
-                    results[current_file.split('.')[0]]['transcript_ids'] = ','.join(length.keys())
-                else:
-                    results[current_file.split('.')[0]]['min_length'] = circle_coordinates[2] - circle_coordinates[1]
-                    results[current_file.split('.')[0]]['max_length'] = circle_coordinates[2] - circle_coordinates[1]
-                    results[current_file.split('.')[0]]['transcript_ids'] = 'not_annotated'
 
-                results[current_file.split('.')[0]]['circle_id'] = '%s_%s_%s' % (
-                    circle_coordinates[0], circle_coordinates[1], circle_coordinates[2])
-                results[current_file.split('.')[0]]['num_reads'] = num_reads
-        return results
+        from pathos.multiprocessing import ProcessingPool as Pool
+
+        p = Pool(self.cpus)
+        print(self.cpus)
+
+        tmp = p.map(self.run_parallel, files)
+
+        new_dict = {}
+        for item in tmp:
+            for entry in item:
+                new_dict[entry] = item[entry]
+
+        return new_dict
 
     def write_results(self, results, outfile):
         output_file = open(outfile, 'w')
