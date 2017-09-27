@@ -134,8 +134,6 @@ class mate_information(object):
         from pathos.multiprocessing import ProcessingPool as Pool
 
         p = Pool(self.cpus)
-        print(self.cpus)
-
         tmp = p.map(self.run_parallel, files)
 
         new_dict = {}
