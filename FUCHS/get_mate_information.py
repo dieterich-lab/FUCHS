@@ -19,7 +19,6 @@ class mate_information(object):
         internal_dict = {}
 
         if f.split('.')[-1] == 'bam':
-            print(f)
             circle_coordinates = ['_'.join(f.split('_')[0:-3]), int(f.split('_')[-3]),
                                   int(f.split('_')[-2])]
             num_reads = int(f.split('_')[-1].split('.')[0].replace('reads', ''))
