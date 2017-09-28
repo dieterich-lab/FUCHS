@@ -87,7 +87,8 @@ setup(
     install_requires=[
         'pysam>=0.9.0',
         'pybedtools>=0.7.8',
-        'numpy>=0.8.2'
+        'numpy>=0.8.2',
+        'pathos>=0.2.1'
     ],
 
     # List additional groups of dependencies here (e.g. development
