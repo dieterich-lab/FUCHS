@@ -53,7 +53,7 @@ setup(
         # Development Status :: 6 - Mature
         # Development Status :: 7 - Inactive
 
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
 
         # Indicate who your project is intended for
         'Intended Audience :: Researchers',
