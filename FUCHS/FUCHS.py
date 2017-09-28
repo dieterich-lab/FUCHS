@@ -303,7 +303,6 @@ def main():
 
             def run_r_parallel(f):
                     if f.endswith('.txt'):
-                        # print('Generating plot for %s' % f)
                         os.system('make_coverage_picture.R %s/%s.coverage_profiles/%s %s/%s.coverage_pictures/' %
                                   (outfolder, sample, f, outfolder, sample))
 

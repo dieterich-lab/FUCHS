@@ -60,8 +60,6 @@ class extract_reads(object):
         else:
             samfile = pysam.AlignmentFile(self.bamfile, 'r')
         for i, read in enumerate(samfile.fetch()):
-            if i % 1000000 == 0:
-                print('%s reads processed' % i)
             if read.query_name in circle_reads and read.mapq > cutoff:
                 if not read.query_name in reads:
                     reads[read.query_name] = {}
