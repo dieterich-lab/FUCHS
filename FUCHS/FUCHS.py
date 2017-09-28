@@ -300,11 +300,18 @@ def main():
             folders = os.listdir(outfolder)
             if not '%s.coverage_pictures' % (sample) in folders:
                 os.mkdir('%s/%s.coverage_pictures' % (outfolder, sample))
-            for f in files:
-                if f.endswith('.txt'):
-                    print('Generating plot for %s' % f)
-                    os.system('make_coverage_picture.R %s/%s.coverage_profiles/%s %s/%s.coverage_pictures/' %
-                              (outfolder, sample, f, outfolder, sample))
+
+            def run_r_parallel(f):
+                    if f.endswith('.txt'):
+                        # print('Generating plot for %s' % f)
+                        os.system('make_coverage_picture.R %s/%s.coverage_profiles/%s %s/%s.coverage_pictures/' %
+                                  (outfolder, sample, f, outfolder, sample))
+
+            from pathos.multiprocessing import ProcessingPool as Pool
+
+            pool = Pool(num_cpus)
+            pool.map(run_r_parallel, files)
+
         else:
             output_file = open('%s/%s.logfile.%s' % (outfolder, sample, dt.replace(' ', '_')), 'a')
             output_file.write('\tYou are trying to generate coverage pictures '
