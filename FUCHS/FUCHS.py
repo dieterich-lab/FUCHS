@@ -258,9 +258,6 @@ def main():
     output_file.write('\tfinished\n\n%s: starting to generate coverage profiles\n' % (datetime.datetime.now()))
     output_file.close()
     if not 'step6' in skipped_steps:
-        # os.system('python get_coverage_profile.py -e %s -s %s -p %s %s %s %s --tmp %s' %
-        #           (exon_index, split_character, platform, bedfile, outfolder, sample, tmp_folder))
-
         if not os.path.isfile('%s/%s.exon_counts.bed' % (outfolder, sample)) and not os.path.isdir(
                         '%s/%s.coverage_profiles/' % (outfolder, sample)):
             import get_coverage_profile as coverage_profile
