@@ -26,7 +26,6 @@ class detect_skipped_exons(object):
     def run_parallel(self, f):
 
         if f.split('.')[-1] == 'bam':
-            print(f)
             circle_id = ('_'.join(f.split('_')[0:-3]), int(f.split('_')[-3]), int(f.split('_')[-2]))
             bamfile = '%s/%s' % (self.folder, f)
             READS = self.load_bamfile(bamfile)
