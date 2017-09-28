@@ -6,8 +6,9 @@
 import pybedtools
 import tempfile
 
+
 class detect_splicing_variants(object):
-    def __init__(self, split_character, platform, circles, bedfile, outfolder, sample, tmp_folder):
+    def __init__(self, split_character, platform, circles, bedfile, outfolder, sample, tmp_folder, cpus):
 
         # parse arguments
         self.circlefile = circles
@@ -16,11 +17,25 @@ class detect_splicing_variants(object):
         self.split_character = split_character
         self.platform = platform
         self.tmp_folder = tmp_folder
+        self.cpus = cpus
+        self.bed = pybedtools.example_bedtool(self.bedfile)
 
         # set temp folder
         tempfile.tempdir = tmp_folder
         pybedtools.set_tempdir(tmp_folder)
 
+    def run_parallel(self, c):
+        annotated_circles = {c: []}
+        coordinates = pybedtools.BedTool('%s %s %s' % (c[0], c[1], c[2]), from_string=True)
+        transcripts = self.bed.intersect(coordinates)
+        for t in transcripts:
+            if self.platform == 'refseq':
+                tname = self.split_character.join(t[3].split(self.split_character)[0:2])
+            else:
+                tname = t[3].split(self.split_character)[0]
+            annotated_circles[c] += [tname]
+        annotated_circles[c] = set(annotated_circles[c])
+        return annotated_circles
 
     def read_circle_file(self, infile):
         I = open(infile)
@@ -34,23 +49,19 @@ class detect_splicing_variants(object):
         I.close()
         return (circ_table)
 
+    def annotate_circles(self, circles):
 
-    def annotate_circles(self, circles, bed_annotation, platform, split_character):
-        annotated_circles = {}
-        bed = pybedtools.example_bedtool(self.bedfile)
-        for c in circles:
-            annotated_circles[c] = []
-            coordinates = pybedtools.BedTool('%s %s %s' % (c[0], c[1], c[2]), from_string=True)
-            transcripts = bed.intersect(coordinates)
-            for t in transcripts:
-                if platform == 'refseq':
-                    tname = split_character.join(t[3].split(split_character)[0:2])
-                else:
-                    tname = t[3].split(split_character)[0]
-                annotated_circles[c] += [tname]
-            annotated_circles[c] = set(annotated_circles[c])
-        return (annotated_circles)
+        from pathos.multiprocessing import ProcessingPool as Pool
 
+        pool = Pool(self.cpus)
+        tmp = pool.map(self.run_parallel, circles)
+
+        new_dict = {}
+        for item in tmp:
+            for entry in item:
+                new_dict[entry] = item[entry]
+
+        return new_dict
 
     def accumulate_over_transcripts(self, circles):
         transcripts = {}
@@ -60,7 +71,6 @@ class detect_splicing_variants(object):
                     transcripts[t] = []
                 transcripts[t] += [c]
         return (transcripts)
-
 
     def classify_multi_circle_transcripts(self, transcripts):
         classification = {}
@@ -82,20 +92,20 @@ class detect_splicing_variants(object):
                             types['same_end'][circle1[2]] += ['%s:%s-%s' % (circle1[0], circle1[1], circle1[2]),
                                                               '%s:%s-%s' % (circle2[0], circle2[1], circle2[2])]
                         elif (circle1[1] < circle2[1] and circle1[2] > circle2[2]) or (
-                                circle1[1] > circle2[1] and circle1[2] < circle2[2]):
+                                        circle1[1] > circle2[1] and circle1[2] < circle2[2]):
                             if not i in types['within']:
                                 types['within'][i] = []
                             types['within'][i] += ['%s:%s-%s' % (circle1[0], circle1[1], circle1[2]),
                                                    '%s:%s-%s' % (circle2[0], circle2[1], circle2[2])]
                         elif (circle1[1] < circle2[1] and circle1[2] < circle2[2] and circle1[2] > circle2[1]) or (
-                                    circle1[1] > circle2[1] and circle1[2] > circle2[2] and circle1[1] < circle2[2]):
+                                            circle1[1] > circle2[1] and circle1[2] > circle2[2] and circle1[1] <
+                                    circle2[2]):
                             if not i in types['overlapping']:
                                 types['overlapping'][i] = []
                             types['overlapping'][i] += ['%s:%s-%s' % (circle1[0], circle1[1], circle1[2]),
                                                         '%s:%s-%s' % (circle2[0], circle2[1], circle2[2])]
             classification[lola] = types
         return (classification)
-
 
     def write_genes(self, types, outfile):
         O = open(outfile, 'w')
@@ -130,12 +140,11 @@ class detect_splicing_variants(object):
         O.close()
         return
 
-
     def run(self):
 
         # run
         circles = self.read_circle_file(self.circlefile)
-        annotated_circles = self.annotate_circles(circles, self.bedfile, self.platform, self.split_character)
+        annotated_circles = self.annotate_circles(circles)
         transcripts = self.accumulate_over_transcripts(annotated_circles)
         circle_types = self.classify_multi_circle_transcripts(transcripts)
         self.write_genes(circle_types, self.outfile)

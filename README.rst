@@ -12,7 +12,7 @@ coverage profile. These results can be used to identify potential false positive
 Installation
 *************
 
-FUCHS dependes on **bedtools (>= 2.25.0)** and **samtools (>= 1.3.1)** and **Python (> 2.7; pysam>=0.9.1.4, pybedtools>=0.7.8, numpy>=1.11.2)** and **R(> 3.2.0; amap, Hmisc, gplots)**. All Python an R dependencies will be installed automatically when installing FUCHS. Please make sure to have the correct versions of bedtools and samtools in your $PATH.
+FUCHS dependes on **bedtools (>= 2.25.0)** and **samtools (>= 1.3.1)** and **Python (> 2.7; pysam>=0.9.1.4, pybedtools>=0.7.8, numpy>=1.11.2, pathos>=0.2.1)** and **R(> 3.2.0; amap, Hmisc, gplots)**. All Python an R dependencies will be installed automatically when installing FUCHS. Please make sure to have the correct versions of bedtools and samtools in your $PATH.
 
 Clone the repository and install FUCHS using setup.py:
 

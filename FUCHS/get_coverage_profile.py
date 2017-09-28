@@ -10,8 +10,9 @@ import argparse
 import pybedtools
 import tempfile
 
+
 class get_coverage_profile(object):
-    def __init__(self, exon_index, split_character, platform, bedfile, outfolder, sample, tmp_folder):
+    def __init__(self, exon_index, split_character, platform, bedfile, outfolder, sample, tmp_folder, cpus):
 
         # parse arguments
         self.bedfile = bedfile
@@ -21,6 +22,8 @@ class get_coverage_profile(object):
         self.split_character = split_character
         self.platform = platform
         self.tmp_folder = tmp_folder
+        self.exon_count_file = ""
+        self.cpus = cpus
 
         # set temp folder
         tempfile.tempdir = tmp_folder
@@ -34,13 +37,22 @@ class get_coverage_profile(object):
 
         """
         """
-        x = pybedtools.example_bedtool(bamfile2)
-        b = pybedtools.example_bedtool(bedfile)
-        b = b.filter(lambda b: b.chrom == coordinates[0] and b.start >= coordinates[1]-1000 and b.end <= coordinates[2]+1000)
+        x = pybedtools.BedTool(bamfile2)
+        b = pybedtools.BedTool(bedfile)
+
+        b = b.filter(
+            lambda b: b.chrom == coordinates[0] and b.start >= coordinates[1] - 1000 and b.end <= coordinates[2] + 1000)
         y = x.intersect(b, bed=True, wo=True, split=True)
         transcripts = {}
         found_features = []
+        y = y.remove_invalid()
+
         for hit in y:
+
+            if len(str(hit).split("\t")) < 19:
+                print("Malformed BED line: " + str(hit))
+                continue
+
             found_features += [hit[15]]
             transcript = hit[15]
             start = int(hit[13])
@@ -48,6 +60,7 @@ class get_coverage_profile(object):
             length = end - start
             strand_read = hit[5]
             strand_feature = hit[17]
+
             if platform == 'refseq':
                 transcript_id = split_character.join(transcript.split(split_character)[0:2])
             elif platform == 'ensembl':
@@ -55,21 +68,26 @@ class get_coverage_profile(object):
             else:
                 transcript_id = 'NA'
                 print('you are using an unkown annotation platform, please use refseq or ensembl')
+
             if transcript.split(split_character)[exon_index].isdigit():
                 exon = int(transcript.split(split_character)[exon_index])
             else:
                 exon = 0
+
             read = hit[3]
             chromosome = hit[0]
+
             if not transcript_id in transcripts:
                 transcripts[transcript_id] = {}
             if not exon in transcripts[transcript_id]:
                 transcripts[transcript_id][exon] = {'length': length, 'start': start, 'end': end, 'strand_read': [],
-                                                    'strand_feature': strand_feature, 'reads': [], 'chromosome': chromosome}
+                                                    'strand_feature': strand_feature, 'reads': [],
+                                                    'chromosome': chromosome}
+
             transcripts[transcript_id][exon]['reads'] += [read]
             transcripts[transcript_id][exon]['strand_read'] += [strand_read]
-        return transcripts, found_features
 
+        return transcripts, found_features
 
     def write_exon_count(self, outfile, exon_count, sample, circle_id,
                          transcript):  # append to existing exon_count file for the sample
@@ -86,16 +104,17 @@ class get_coverage_profile(object):
                         num_minus = exon_count[transcript][exon]['strand_read'].count('-')
                         unique_reads = set([w.split('/')[0] for w in exon_count[transcript][exon]['reads']])
                         out.write('%s\t%s:%s-%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % (
-                        sample, circle_id[0], circle_id[1], circle_id[2], transcript, ','.join(exon_count.keys()), exon,
-                        exon_count[transcript][exon]['chromosome'], exon_count[transcript][exon]['start'],
-                        exon_count[transcript][exon]['end'], exon_count[transcript][exon]['strand_feature'],
-                        exon_count[transcript][exon]['length'], len(unique_reads),
-                        len(exon_count[transcript][exon]['reads']), num_plus, num_minus))
+                            sample, circle_id[0], circle_id[1], circle_id[2], transcript, ','.join(exon_count.keys()),
+                            exon,
+                            exon_count[transcript][exon]['chromosome'], exon_count[transcript][exon]['start'],
+                            exon_count[transcript][exon]['end'], exon_count[transcript][exon]['strand_feature'],
+                            exon_count[transcript][exon]['length'], len(unique_reads),
+                            len(exon_count[transcript][exon]['reads']), num_plus, num_minus))
                     else:
                         out.write('%s\t%s:%s-%s\t%s\t%s\t%s\t0\t0\t0\t0\t0\t0\t0\t0\t0\n' % (
-                        sample, circle_id[0], circle_id[1], circle_id[2], transcript, ','.join(exon_count.keys()), exon))
+                            sample, circle_id[0], circle_id[1], circle_id[2], transcript, ','.join(exon_count.keys()),
+                            exon))
         return
-
 
     def filter_features(self, bed_features, feature_names):
         """
@@ -105,7 +124,6 @@ class get_coverage_profile(object):
             if interval[3] in feature_names:
                 intervals += str(interval)
         return intervals
-
 
     def choose_transcript(self, exon_counts):
         """
@@ -131,12 +149,11 @@ class get_coverage_profile(object):
             transcript = ''
         return transcript
 
-
     def circle_coverage_profile(self, bamfile, bedfile, exon_ind, split_character, platform):
         """
         """
         virtual_bed = pybedtools.BedTool(bedfile, from_string=True)
-        bam = pybedtools.example_bedtool(bamfile)
+        bam = pybedtools.BedTool(bamfile)
         coverage = virtual_bed.coverage(bam, d=True, split=True)
         transcriptwise_coverage = {}
         for position in coverage:
@@ -158,21 +175,21 @@ class get_coverage_profile(object):
             transcriptwise_coverage[transcript][exon]['relative_positions'] += [position[6]]
         return transcriptwise_coverage
 
-
     def write_coverage_profile(self, inputfolder, coverage_profile, sample, circle_id, transcript):
         """
         """
         for t in coverage_profile:
             if t == transcript:
                 out = open('%s/%s.coverage_profiles/%s_%s_%s.%s.txt' % (
-                inputfolder, sample, circle_id[0], circle_id[1], circle_id[2], transcript), 'w')
+                    inputfolder, sample, circle_id[0], circle_id[1], circle_id[2], transcript), 'w')
                 out.write('exon\trelative_pos_in_circle\trelative_pos_in_exon\tcoverage\n')
                 pos_in_circle = 1
                 for exon in range(min(coverage_profile[transcript]), (max(coverage_profile[transcript]) + 1)):
                     if exon in coverage_profile[transcript]:
                         for i, position in enumerate(coverage_profile[transcript][exon]['relative_positions']):
                             out.write('%s\t%s\t%s\t%s\n' % (
-                            exon, pos_in_circle, position, coverage_profile[transcript][exon]['position_coverage'][i]))
+                                exon, pos_in_circle, position,
+                                coverage_profile[transcript][exon]['position_coverage'][i]))
                             pos_in_circle += 1
                     else:
                         for i, position in enumerate(range(0, 50)):
@@ -180,7 +197,6 @@ class get_coverage_profile(object):
                             pos_in_circle += 1
         out.close()
         return
-
 
     def remove_exons_outside_circle(self, exon_count, transcript, circle_id):
         exons = exon_count[transcript]
@@ -196,8 +212,8 @@ class get_coverage_profile(object):
             del exon_count[transcript][exon]
         return exon_count
 
-
-    def format_to_bed12(self, exon_count, transcript, circle_id, number_of_reads, outfile):  # correctly formatted now :)
+    def format_to_bed12(self, exon_count, transcript, circle_id, number_of_reads,
+                        outfile):  # correctly formatted now :)
         bed12 = {}
         for t in exon_count:
             if t == transcript and len(exon_count[t]) > 0:
@@ -228,7 +244,8 @@ class get_coverage_profile(object):
                     bed12['10_blockCount'] = '%s' % (int(bed12['10_blockCount']) + 1)
                 # if the exon starts before the circle starts (circle starts in exon)
                 if bed12['12_block_starts'][0] < '0':
-                    bed12['11_block_sizes'][0] = '%s' % (int(bed12['11_block_sizes'][0]) + int(bed12['12_block_starts'][0]))
+                    bed12['11_block_sizes'][0] = '%s' % (
+                    int(bed12['11_block_sizes'][0]) + int(bed12['12_block_starts'][0]))
                     bed12['12_block_starts'][0] = '0'
                 # if the last exon extends over the circle boundaries:
                 if int(bed12['12_block_starts'][-1]) + int(bed12['02_start']) + int(bed12['11_block_sizes'][-1]) > int(
@@ -253,6 +270,33 @@ class get_coverage_profile(object):
         o.close()
         return bed12
 
+    def run_parallel(self, f):
+        if f.split('.')[-2] == 'sorted':
+            # extract circle id from filename, works for files
+            # generated by extract_reads.py, consider making this more flexible
+            circle_id = ('_'.join(f.split('_')[0:-3]), int(f.split('_')[-3]), int(f.split('_')[-2]))
+            number_of_reads = int(f.split('_')[-1].split('.')[0].replace('reads', ''))
+            bamfile2 = '%s/%s/%s' % (self.inputfolder, self.sample, f)
+            # open bed feature file
+            b = pybedtools.BedTool(self.bedfile)
+            # get read counts for each exon in circle
+
+            exon_counts, found_features = self.circle_exon_count(bamfile2, self.bedfile, self.exon_index,
+                                                                 self.split_character, self.platform, circle_id)
+            if len(exon_counts) > 0:
+                # choose best fitting transcript
+                transcript_id = self.choose_transcript(exon_counts)
+                # add circle to result table
+                self.write_exon_count(self.exon_count_file, exon_counts, self.sample, circle_id, transcript_id)
+                exon_counts = self.remove_exons_outside_circle(exon_counts, transcript_id, circle_id)
+                self.format_to_bed12(exon_counts, transcript_id, circle_id, number_of_reads,
+                                     '%s/%s.exon_counts.bed' % (self.inputfolder, self.sample))
+                filtered_features = self.filter_features(b, found_features)
+                if len(filtered_features) > 0:
+                    coverage_track = self.circle_coverage_profile(bamfile2, filtered_features, self.exon_index,
+                                                                  self.split_character,
+                                                                  self.platform)
+                    self.write_coverage_profile(self.inputfolder, coverage_track, self.sample, circle_id, transcript_id)
 
     # circle exon count over all bam files in sample folder, this could easily be parralellised
     # also think about using our denovo recontruction as bases for coverage profiles
@@ -260,8 +304,8 @@ class get_coverage_profile(object):
     def run(self):
 
         # initializing the result table file
-        exon_count_file = '%s/%s.exon_counts.txt' % (self.inputfolder, self.sample)
-        exon_counts_out = open(exon_count_file, 'w')
+        self.exon_count_file = '%s/%s.exon_counts.txt' % (self.inputfolder, self.sample)
+        exon_counts_out = open(self.exon_count_file, 'w')
         exon_counts_out.write('sample\tcircle_id\ttranscript_id\tother_ids\texon_id\tchr\tstart'
                               '\tend\tstrand\texon_length\tunique_reads\tfragments\tnumber+\tnumber-\n')
         exon_counts_out.close()
@@ -278,29 +322,7 @@ class get_coverage_profile(object):
         if not '%s.coverage_profiles' % (self.sample) in folders:
             os.mkdir('%s/%s.coverage_profiles' % (self.inputfolder, self.sample))
 
-        # iterate over all files
-        for f in files:
-            # only consider sorted bam files
-            if f.split('.')[-2] == 'sorted':
-                # extract circle id from filename, works for files
-                # generated by extract_reads.py, consider making this more flexible
-                circle_id = ('_'.join(f.split('_')[0:-3]), int(f.split('_')[-3]), int(f.split('_')[-2]))
-                number_of_reads = int(f.split('_')[-1].split('.')[0].replace('reads', ''))
-                bamfile2 = '%s/%s/%s' % (self.inputfolder, self.sample, f)
-                # open bed feature file
-                b = pybedtools.example_bedtool(self.bedfile)
-                # get read counts for each exon in circle
-                exon_counts, found_features = self.circle_exon_count(bamfile2, self.bedfile, self.exon_index, self.split_character, self.platform, circle_id)
-                if len(exon_counts) > 0:
-                    # choose best fitting transcript
-                    transcript_id = self.choose_transcript(exon_counts)
-                    # add circle to result table
-                    self.write_exon_count(exon_count_file, exon_counts, self.sample, circle_id, transcript_id)
-                    exon_counts = self.remove_exons_outside_circle(exon_counts, transcript_id, circle_id)
-                    self.format_to_bed12(exon_counts, transcript_id, circle_id, number_of_reads,
-                                    '%s/%s.exon_counts.bed' % (self.inputfolder, self.sample))
-                    filtered_features = self.filter_features(b, found_features)
-                    if len(filtered_features) > 0:
-                        coverage_track = self.circle_coverage_profile(bamfile2, filtered_features, self.exon_index, self.split_character,
-                                                                 self.platform)
-                        self.write_coverage_profile(self.inputfolder, coverage_track, self.sample, circle_id, transcript_id)
+        from pathos.multiprocessing import ProcessingPool as Pool
+
+        pool = Pool(self.cpus)
+        pool.map(self.run_parallel, files)

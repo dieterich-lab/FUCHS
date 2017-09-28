@@ -22,7 +22,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.1.0',
+    version='0.2.0',
 
     description='FUll circular RNA CHaracterization from RNA-Seq',
     long_description=long_description,
@@ -53,7 +53,7 @@ setup(
         # Development Status :: 6 - Mature
         # Development Status :: 7 - Inactive
 
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
 
         # Indicate who your project is intended for
         'Intended Audience :: Researchers',
@@ -87,7 +87,8 @@ setup(
     install_requires=[
         'pysam>=0.9.0',
         'pybedtools>=0.7.8',
-        'numpy>=0.8.2'
+        'numpy>=0.8.2',
+        'pathos>=0.2.1'
     ],
 
     # List additional groups of dependencies here (e.g. development
