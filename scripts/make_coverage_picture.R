@@ -40,7 +40,7 @@ transcript_name = strsplit(coverage_track, '[.]')[[1]][2]
 D = read.table(coverage_file, header = T, as.is = T)
 smoothed = smoothing(D$coverage)
 
-png(paste(output_folder, circle_id, '_',transcript_name, '.png', sep = ''), type = 'cairo')
+pdf(paste(output_folder, circle_id, '_',transcript_name, '.pdf', sep = ''), title=paste(circle_id,transcript_name,sep=" "))
   plot(smoothed,
         type = 'h',
         col = D$exon + 1,
