@@ -350,12 +350,17 @@ def run_denovo_exon_chain_reconstruction(f, folder, annotation, outfile):
             else:
                 write_bed12('%s12.bed' % (outfile), TC, circ_coordinates, Cov, Introns)
                 write_bed6(TC, '%s6.bed' % (outfile), circ_coordinates, splitCov)
+
         else:
             Cov = get_coverage(circ_coordinates, bamfile)
             if not 0 in Cov or annotation == '.':
                 write_single_exon(outfile, Cov, circ_coordinates, annotation)
             elif sum(Cov) > 0:
                 breakpoints = (circ_coordinates[1] + Cov.index(0), circ_coordinates[2] - (list(reversed(Cov)).index(0)))
+
+                if circ_coordinates[2] == breakpoints[1] or Cov.index(0) == 0:
+                    return f, len(Introns)
+
                 TC = {
                     0: {'introns': Introns, 'coverage_breaks': [(circ_coordinates[0], breakpoints[0], breakpoints[1])],
                         'exons': {
@@ -371,8 +376,9 @@ def run_denovo_exon_chain_reconstruction(f, folder, annotation, outfile):
                     write_bed12('%s12.bed' % (outfile), TC, circ_coordinates, Cov, Introns)
                     write_bed6(TC, '%s6.bed' % (outfile), circ_coordinates, Cov)
             else:
-                print('no reads mapped for %s' % (f))
-    return (f, len(Introns))
+                print('no reads mapped for %s' % f)
+
+    return f, len(Introns)
 
 
 # Run script
