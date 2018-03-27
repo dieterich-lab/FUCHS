@@ -1,0 +1,1 @@
+from FUCHS import main
