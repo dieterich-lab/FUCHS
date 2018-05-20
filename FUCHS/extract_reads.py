@@ -60,7 +60,7 @@ class extract_reads(object):
         else:
             samfile = pysam.AlignmentFile(self.bamfile, 'r')
         for i, read in enumerate(samfile.fetch()):
-            if read.query_name in circle_reads and read.mapq > cutoff:
+            if read.query_name in circle_reads and read.mapq > cutoff and read.get_tag("HI") == 1:
                 if not read.query_name in reads:
                     reads[read.query_name] = {}
                 reads[read.query_name][(read.reference_start, read.cigarstring, read.is_reverse)] = read
