@@ -294,7 +294,9 @@ def write_single_exon(outfile, coverage, circ_coordinates, annotation):
     if 0 in coverage and sum(coverage) > 0:
         breakpoints = (
             circ_coordinates[1] + coverage.index(0), circ_coordinates[2] - (list(reversed(coverage)).index(0)))
-        exon1 = (circ_coordinates[0], circ_coordinates[1], breakpoints[0])
+        if circ_coordinates[2] == breakpoints[1] or len(coverage) == 0 or float(coverage.index(0)) == 0:
+		return
+	exon1 = (circ_coordinates[0], circ_coordinates[1], breakpoints[0])
         exon2 = (circ_coordinates[0], breakpoints[1], circ_coordinates[2])
         O12.write('%s\t%s\t%s\t%s:%s-%s|0|%s\t%s\t.\t%s\t%s\t255,0,0\t2\t%s,%s\t0,%s\n' % (
             circ_coordinates[0], circ_coordinates[1], circ_coordinates[2], circ_coordinates[0], circ_coordinates[1],
@@ -303,7 +305,7 @@ def write_single_exon(outfile, coverage, circ_coordinates, annotation):
                 coverage[breakpoints[1] - circ_coordinates[1]:]) / float(circ_coordinates[2] - breakpoints[1])) / 2),
             circ_coordinates[1], circ_coordinates[2], coverage.index(0), circ_coordinates[2] - breakpoints[1],
             breakpoints[1] - circ_coordinates[1]))
-        O6.write('%s\t%s\t%s\t%s:%s-%s|0|0\t%s\t.\n' % (
+	O6.write('%s\t%s\t%s\t%s:%s-%s|0|0\t%s\t.\n' % (
             exon1[0], exon1[1], exon1[2], circ_coordinates[0], circ_coordinates[1], circ_coordinates[2],
             int(sum(coverage[:coverage.index(0)]) / float(coverage.index(0)))))
         O6.write('%s\t%s\t%s\t%s:%s-%s|1|0\t%s\t.\n' % (
@@ -358,8 +360,17 @@ def run_denovo_exon_chain_reconstruction(f, folder, annotation, outfile):
             elif sum(Cov) > 0:
                 breakpoints = (circ_coordinates[1] + Cov.index(0), circ_coordinates[2] - (list(reversed(Cov)).index(0)))
 
+                #print(breakpoints)
+                #print(breakpoints[1])
+                #
+                print(circ_coordinates[2])
+                #
+                #print(float(circ_coordinates[2] - breakpoints[1]))
+
                 if circ_coordinates[2] == breakpoints[1] or Cov.index(0) == 0:
                     return f, len(Introns)
+                #print(float(Cov.index(0)))
+                #print(float(circ_coordinates[2] - breakpoints[1]))
 
                 TC = {
                     0: {'introns': Introns, 'coverage_breaks': [(circ_coordinates[0], breakpoints[0], breakpoints[1])],
