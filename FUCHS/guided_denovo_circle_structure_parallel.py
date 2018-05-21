@@ -255,8 +255,8 @@ def write_bed12(outfile, transcript_coverage, circ_coordinates, coverage, intron
                     and 0 < e_location < (
                     circ_coordinates[2] - circ_coordinates[1]):
 
-                exon_length += e_length
-                exon_location += e_location
+                exon_length += [e_length]
+                exon_location += [e_location]
 
         O.write('%s\t%s\n' % (','.join(exon_length), ','.join(exon_location)))
     O.close()
