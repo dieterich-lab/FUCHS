@@ -248,8 +248,8 @@ def write_bed12(outfile, transcript_coverage, circ_coordinates, coverage, intron
         exon_location = []
         sorted_exons = sorted(transcript_coverage[t]['exons'])
         for e in sorted_exons:
-            e_length = ['%s' % (e[2] - e[1])]
-            e_location = ['%s' % (e[1] - circ_coordinates[1])]
+            e_length = e[2] - e[1]
+            e_location = e[1] - circ_coordinates[1]
 
             if e_length < (circ_coordinates[2] - circ_coordinates[1]) \
                     and 0 < e_location < (
