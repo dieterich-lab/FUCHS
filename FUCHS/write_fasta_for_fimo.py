@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 
 
 # python script to get circRNA and host gene fasta into one fasta file

@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 
 
 # python script to use CircRNACount file and Chimeric.out.junction

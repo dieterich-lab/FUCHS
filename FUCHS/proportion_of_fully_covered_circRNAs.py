@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 
 
 # calculate the proportion of circRNA covered by reads. including introns. should probably be independent of mate_status.txt file.
