@@ -1,4 +1,4 @@
-#! /usr/bin/env python2
+#! /usr/bin/env python3
 
 # script to identify skipped exons in circRNA bam files
 
@@ -56,7 +56,7 @@ class detect_skipped_exons(object):
         for lola in reads:
             if len(reads[lola]) > 1:
                 occurences = reads[lola]
-                KEYS = occurences.keys()
+                KEYS = list(occurences.keys())
                 mapq = occurences[KEYS[0]]['mapq']
                 for forrest in KEYS:
                     if occurences[forrest]['mapq'] > mapq:

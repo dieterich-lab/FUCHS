@@ -1,4 +1,4 @@
-#! /usr/bin/env python2
+#! /usr/bin/env python3
 
 # required packages
 import os
@@ -31,9 +31,9 @@ class mate_information(object):
             stats = self.get_statistics(mates)
             internal_dict[f.split('.')[0]] = stats
             if len(length) > 0:
-                internal_dict[f.split('.')[0]]['min_length'] = min(length.items(), key=lambda x: x[1])[1]
-                internal_dict[f.split('.')[0]]['max_length'] = max(length.items(), key=lambda x: x[1])[1]
-                internal_dict[f.split('.')[0]]['transcript_ids'] = ','.join(length.keys())
+                internal_dict[f.split('.')[0]]['min_length'] = min(list(length.items()), key=lambda x: x[1])[1]
+                internal_dict[f.split('.')[0]]['max_length'] = max(list(length.items()), key=lambda x: x[1])[1]
+                internal_dict[f.split('.')[0]]['transcript_ids'] = ','.join(list(length.keys()))
             else:
                 internal_dict[f.split('.')[0]]['min_length'] = circle_coordinates[2] - circle_coordinates[1]
                 internal_dict[f.split('.')[0]]['max_length'] = circle_coordinates[2] - circle_coordinates[1]

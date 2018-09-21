@@ -1,4 +1,4 @@
-#! /usr/bin/env python2
+#! /usr/bin/env python3
 
 
 # python script to get coverage profile for circle
@@ -50,7 +50,7 @@ class get_coverage_profile(object):
         for hit in y:
 
             if len(str(hit).split("\t")) < 19:
-                print("Malformed BED line: " + str(hit))
+                print(("Malformed BED line: " + str(hit)))
                 continue
 
             found_features += [hit[15]]
@@ -104,7 +104,7 @@ class get_coverage_profile(object):
                         num_minus = exon_count[transcript][exon]['strand_read'].count('-')
                         unique_reads = set([w.split('/')[0] for w in exon_count[transcript][exon]['reads']])
                         out.write('%s\t%s:%s-%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % (
-                            sample, circle_id[0], circle_id[1], circle_id[2], transcript, ','.join(exon_count.keys()),
+                            sample, circle_id[0], circle_id[1], circle_id[2], transcript, ','.join(list(exon_count.keys())),
                             exon,
                             exon_count[transcript][exon]['chromosome'], exon_count[transcript][exon]['start'],
                             exon_count[transcript][exon]['end'], exon_count[transcript][exon]['strand_feature'],
@@ -112,7 +112,7 @@ class get_coverage_profile(object):
                             len(exon_count[transcript][exon]['reads']), num_plus, num_minus))
                     else:
                         out.write('%s\t%s:%s-%s\t%s\t%s\t%s\t0\t0\t0\t0\t0\t0\t0\t0\t0\n' % (
-                            sample, circle_id[0], circle_id[1], circle_id[2], transcript, ','.join(exon_count.keys()),
+                            sample, circle_id[0], circle_id[1], circle_id[2], transcript, ','.join(list(exon_count.keys())),
                             exon))
         return
 
@@ -129,7 +129,7 @@ class get_coverage_profile(object):
         """
         """
         if len(exon_counts) > 0:
-            transcript = exon_counts.keys()[0]
+            transcript = list(exon_counts.keys())[0]
             missing_exons_transcript = 100
             for t in exon_counts:
                 missing_exons = 0

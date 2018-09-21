@@ -1,4 +1,4 @@
-#! /usr/bin/env python2
+#! /usr/bin/env python3
 
 
 # python script, to extract circular reads from a bam file, based on a
@@ -99,7 +99,7 @@ class extract_reads(object):
         tempfile.tempdir = self.tmp_folder  # set global tmp dir
 
         circle_info, circle_reads = self.read_circles(self.circles)
-        print('DONE reading circles, found %s circles' % (len(circle_info)))
+        print(('DONE reading circles, found %s circles' % (len(circle_info))))
         reads = self.load_alignment(self.bamfile, circle_reads, self.mapq_cutoff)
         print('DONE extracting circular reads')
         folders = os.listdir(self.outfolder)
@@ -118,8 +118,8 @@ class extract_reads(object):
         # fix the file / circle count
         actual_bams = len(files) - len(sorted_bams)
 
-        print('%s circles passed your thresholds of at least %s reads with at least a mapq of %s\n\n' % (
-            actual_bams, self.cutoff, self.mapq_cutoff))
+        print(('%s circles passed your thresholds of at least %s reads with at least a mapq of %s\n\n' % (
+            actual_bams, self.cutoff, self.mapq_cutoff)))
 
         from pathos.multiprocessing import ProcessingPool as Pool
 

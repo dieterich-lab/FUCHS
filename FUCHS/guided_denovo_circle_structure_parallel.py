@@ -1,4 +1,4 @@
-#! /usr/bin/env python2
+#! /usr/bin/env python3
 
 
 # define functions
@@ -24,12 +24,12 @@ def filter_reads(reads, coordinates):
     for lola in reads:
         if len(reads[lola]) > 1:
             occurences = reads[lola]
-            KEYS = occurences.keys()
+            KEYS = list(occurences.keys())
             mapq = occurences[KEYS[0]]['mapq']
             for forrest in KEYS:
                 if not occurences[forrest]['reference'] == coordinates[0]:
                     del occurences[forrest]
-            KEYS = occurences.keys()
+            KEYS = list(occurences.keys())
             for forrest in KEYS:
                 if occurences[forrest]['mapq'] > mapq:
                     mapq = occurences[forrest]['mapq']
@@ -69,13 +69,13 @@ def connect_introns(introns, circ_coordinates):
             st = sorted(transcripts)
             for t in st:
                 ti = max(transcripts) + 1
-                if not (transcripts[t][:-1] + [i]) in transcripts.values():
+                if not (transcripts[t][:-1] + [i]) in list(transcripts.values()):
                     transcripts[ti] = transcripts[t][:-1] + [i]
     for t in transcripts:
         transcripts[t] += [(circ_coordinates[0], circ_coordinates[2] + 1, circ_coordinates[2] + 2)]
     tmp = {}
-    for key, value in transcripts.items():
-        if value not in tmp.values():
+    for key, value in list(transcripts.items()):
+        if value not in list(tmp.values()):
             tmp[key] = value
     transcripts = tmp
     return (transcripts)
@@ -329,7 +329,7 @@ def write_single_exon(outfile, coverage, circ_coordinates, annotation):
             circ_coordinates[0], circ_coordinates[1], circ_coordinates[2], circ_coordinates[0], circ_coordinates[1],
             circ_coordinates[2], int(sum(coverage) / float(len(coverage)))))
     else:
-        print('no reads for circle %s:%s-%s' % (circ_coordinates[0], circ_coordinates[1], circ_coordinates[2]))
+        print(('no reads for circle %s:%s-%s' % (circ_coordinates[0], circ_coordinates[1], circ_coordinates[2])))
     O6.close()
     O12.close()
     return
@@ -371,7 +371,7 @@ def run_denovo_exon_chain_reconstruction(f, folder, annotation, outfile):
                 #print(breakpoints)
                 #print(breakpoints[1])
                 #
-                print(circ_coordinates[2])
+                print((circ_coordinates[2]))
                 #
                 #print(float(circ_coordinates[2] - breakpoints[1]))
 
@@ -395,7 +395,7 @@ def run_denovo_exon_chain_reconstruction(f, folder, annotation, outfile):
                     write_bed12('%s12.bed' % (outfile), TC, circ_coordinates, Cov, Introns)
                     write_bed6(TC, '%s6.bed' % (outfile), circ_coordinates, Cov)
             else:
-                print('no reads mapped for %s' % f)
+                print(('no reads mapped for %s' % f))
 
     return f, len(Introns)
 
@@ -444,15 +444,15 @@ if __name__ == '__main__':
 
     if not os.path.isabs(tmp_folder):
         tmp_folder = os.path.abspath(os.path.join(working_dir, tmp_folder))
-        print('changed tmp folder to %s\n' % (tmp_folder))
+        print(('changed tmp folder to %s\n' % (tmp_folder)))
     if not os.path.isdir(tmp_folder):
         os.mkdir(tmp_folder)
 
     if not os.path.isabs(infolder):
         infolder = os.path.abspath(os.path.join(working_dir, infolder))
-        print('changed inputfolder folder to %s\n' % (infolder))
+        print(('changed inputfolder folder to %s\n' % (infolder)))
     if not os.path.isdir(infolder):
-        print('ERROR, no such file or directory: %s' % (infolder))
+        print(('ERROR, no such file or directory: %s' % (infolder)))
         quit()
 
     # set temp folder. foldr needs to exist!
@@ -462,9 +462,9 @@ if __name__ == '__main__':
     folder = '%s/%s/' % (infolder, sample)
     if not os.path.isabs(folder):
         folder = os.path.abspath(os.path.join(working_dir, folder))
-        print('changed inputfolder folder to %s\n' % (folder))
+        print(('changed inputfolder folder to %s\n' % (folder)))
     if not os.path.isdir(folder):
-        print('ERROR, no such file or directory: %s' % (folder))
+        print(('ERROR, no such file or directory: %s' % (folder)))
         quit()
 
     outfile = '%s/%s_exon_chain_' % (infolder, sample)
@@ -498,8 +498,8 @@ if __name__ == '__main__':
         if f.split('.')[-1] == 'bam':
             tasks.append((f, folder, annotation_file, outfile))
 
-    print(len(files))
-    print("Processing %d circRNAs using %d processors..." % (len(tasks), num_cpus))
+    print((len(files)))
+    print(("Processing %d circRNAs using %d processors..." % (len(tasks), num_cpus)))
 
     # Run tasks
     results = [pool.apply_async(run_denovo_exon_chain_reconstruction, t) for t in tasks]
@@ -507,9 +507,9 @@ if __name__ == '__main__':
     # Process results
     for result in results:
         (filename, introns) = result.get()
-        print("Result: circRNA %s has %s introns" % (filename, introns))
+        print(("Result: circRNA %s has %s introns" % (filename, introns)))
 
     pool.close()
     pool.join()
     pybedtools.helpers.cleanup()
-    print("guided_denovo took --- %s minutes ---\n\n" % (round((time.time() - start_time) / 60.0)))
+    print(("guided_denovo took --- %s minutes ---\n\n" % (round((time.time() - start_time) / 60.0))))
