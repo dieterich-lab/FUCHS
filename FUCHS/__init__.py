@@ -1,1 +1,1 @@
-from .FUCHS import main
+from FUCHS import main
