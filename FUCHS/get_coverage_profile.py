@@ -1,6 +1,3 @@
-#! /usr/bin/env python3
-
-
 # python script to get coverage profile for circle
 # include some checks to make sure input was provided correctly
 

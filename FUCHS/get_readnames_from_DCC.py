@@ -1,6 +1,4 @@
 from functools import reduce
-#! /usr/bin/env python3
-
 
 # python script to use CircRNACount file and Chimeric.out.junction
 # of mate1/2 to extract read names of circle spanning reads

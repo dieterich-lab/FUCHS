@@ -1,5 +1,3 @@
-#! /usr/bin/env python3
-
 # script to identify skipped exons in circRNA bam files
 
 

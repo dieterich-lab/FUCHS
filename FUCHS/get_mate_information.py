@@ -1,5 +1,3 @@
-#! /usr/bin/env python3
-
 # required packages
 import os
 import tempfile

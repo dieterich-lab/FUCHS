@@ -1,6 +1,3 @@
-#! /usr/bin/env python3
-
-
 # python script, to extract circular reads from a bam file, based on a
 # tab-separated circle_id - reads file and a bam file. writes out circle-specific bam files
 
