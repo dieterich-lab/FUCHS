@@ -125,7 +125,7 @@ class get_coverage_profile(object):
     def choose_transcript(self, exon_counts):
         """
         """
-        #print("entering choose transcript")
+        print("entering choose transcript")
         if len(exon_counts) > 0:
             transcript = list(exon_counts.keys())[0]
             missing_exons_transcript = 100
@@ -139,10 +139,10 @@ class get_coverage_profile(object):
                         missing_exons += 1
                     else:
                         max_length += len(exon_counts[t][e]['strand_read'])
-                #print("t count: "+str(len(exon_counts[t])))
-                #print("t count: "+str((exon_counts[t])))
-                #print("transcript count: "+str(len(exon_counts[transcript])))
-                #print("transcript count: "+str((exon_counts[transcript])))
+                print("t count: "+str(len(exon_counts[t])))
+                print("t count: "+str((exon_counts[t])))
+                print("transcript count: "+str(len(exon_counts[transcript])))
+                print("transcript count: "+str((exon_counts[transcript])))
                 if len(exon_counts[t]) > len(exon_counts[transcript]):
                     transcript = t
                     missing_exons_transcript = missing_exons
@@ -152,13 +152,14 @@ class get_coverage_profile(object):
                 elif max_length_transcript < max_length:
                     transcript = t
                     max_length_transcript = max_length
+                    print("!!!!!!!!!!!!!!!!!!!!!")
                 elif 'NR' in transcript and 'NM' in t:
                     transcript = t
                     missing_exons_transcript = missing_exons
                 print(t+">> "+str((exon_counts[t]))+"\t"+str(max_length)+"\t"+str(missing_exons)+"\t"+str(max_length_transcript)+"\t"+str(missing_exons_transcript))
         else:
             transcript = ''
-        #print("->>> chosen transcript: "+transcript)
+        print("->>> chosen transcript: "+transcript)
         return transcript
 
     def circle_coverage_profile(self, bamfile, bedfile, exon_ind, split_character, platform):
