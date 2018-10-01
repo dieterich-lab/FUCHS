@@ -125,7 +125,6 @@ class get_coverage_profile(object):
     def choose_transcript(self, exon_counts):
         """
         """
-        print("entering choose transcript")
         if len(exon_counts) > 0:
             transcript = list(exon_counts.keys())[0]
             missing_exons_transcript = 100
