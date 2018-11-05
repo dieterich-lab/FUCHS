@@ -149,13 +149,13 @@ def main():
         quit()
 
     if not os.path.isabs(outfolder):
-        outfolder = os.path.abspath(os.path.join(os.getcwd(), outfolder))
+        outfolder = os.path.abspath(os.path.join(os.getcwd(), outfolder)) + "/"
         print('changed output folder to %s\n' % (outfolder))
     if not os.path.isdir(outfolder):
         os.mkdir(outfolder)
 
     if not os.path.isabs(tmp_folder):
-        tmp_folder = os.path.abspath(os.path.join(os.getcwd(), tmp_folder))
+        tmp_folder = os.path.abspath(os.path.join(os.getcwd(), tmp_folder)) + "/"
         print('changed tmp folder to %s\n' % (tmp_folder))
     if not os.path.isdir(tmp_folder):
         os.mkdir(tmp_folder)
