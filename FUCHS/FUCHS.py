@@ -184,7 +184,7 @@ def main():
 
         circles = "%s.reads.txt" % paired
         if not os.path.isfile(circles):
-            import get_readnames_from_DCC as get_readnames
+            from . import get_readnames_from_DCC as get_readnames
             names = get_readnames.get_readnames_from_DCC(circle_ids, paired, mate1, mate2)
             names.run()
         else:
@@ -197,7 +197,7 @@ def main():
     output_file.write('\tfinished\n\n%s: starting to extract chimeric reads from bamfile\n' % (datetime.datetime.now()))
     output_file.close()
     if not 'step2' in skipped_steps:
-        import extract_reads as extract_reads
+        from . import extract_reads as extract_reads
         er = extract_reads.extract_reads(cutoff_reads, cutoff_mapq, circles, bamfile, outfolder, sample, tmp_folder,
                                          num_cpus)
         er.run()
@@ -209,7 +209,7 @@ def main():
     if not 'step3' in skipped_steps:
 
         if not os.path.isfile('%s/%s.mate_status.txt' % (outfolder, sample)):
-            import get_mate_information as mateinformation
+            from . import get_mate_information as mateinformation
             mi = mateinformation.mate_information(platform, split_character, bedfile, outfolder, sample, tmp_folder,
                                                   num_cpus)
             mi.run()
@@ -226,7 +226,7 @@ def main():
     if not 'step4' in skipped_steps:
 
         if not os.path.isfile('%s/%s.skipped_exons.bed' % (outfolder, sample)):
-            import detect_skipped_exons as skipped_exons
+            from . import detect_skipped_exons as skipped_exons
             se = skipped_exons.detect_skipped_exons(outfolder, sample, bedfile, tmp_folder, platform, num_cpus)
             se.run()
         else:
@@ -242,7 +242,7 @@ def main():
     if not 'step5' in skipped_steps:
 
         if not os.path.isfile('%s/%s.alternative_splicing.txt' % (outfolder, sample)):
-            import detect_splicing_variants as splicing_variants
+            from . import detect_splicing_variants as splicing_variants
             sv = splicing_variants.detect_splicing_variants(split_character, platform, circles, bedfile,
                                                             outfolder, sample, tmp_folder, num_cpus)
             sv.run()
@@ -261,7 +261,7 @@ def main():
     if not 'step6' in skipped_steps:
         if not os.path.isfile('%s/%s.exon_counts.bed' % (outfolder, sample)) and not os.path.isdir(
                         '%s/%s.coverage_profiles/' % (outfolder, sample)):
-            import get_coverage_profile as coverage_profile
+            from . import get_coverage_profile as coverage_profile
             sv = coverage_profile.get_coverage_profile(exon_index, split_character, platform, bedfile,
                                                        outfolder, sample, tmp_folder, num_cpus)
             sv.run()
