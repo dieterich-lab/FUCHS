@@ -149,7 +149,7 @@ def main():
         quit()
 
     if not os.path.isabs(outfolder):
-        outfolder = os.path.abspath(os.path.join(os.getcwd(), outfolder))
+        outfolder = os.path.abspath(os.path.join(os.getcwd(), outfolder))+"/"
         print(('changed output folder to %s\n' % (outfolder)))
     if not os.path.isdir(outfolder):
         os.mkdir(outfolder)
