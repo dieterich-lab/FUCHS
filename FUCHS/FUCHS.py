@@ -3,7 +3,7 @@
 # main script to run FUCHS
 
 
-def main():
+def main(circtools_parser=None):
     # required packages
     import os
     import argparse
@@ -58,6 +58,9 @@ def main():
 
     parser.add_argument('-P', '--cpus', dest='num_cpus', default=4, type=int,
                         help='Number of CPUs used.')
+
+    if circtools_parser:
+        parser = circtools_parser
 
     args = parser.parse_args()
 
