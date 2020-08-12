@@ -1,6 +1,3 @@
-#! /usr/bin/env python2
-
-
 # script to evaluate circle splicing variants
 
 import pybedtools

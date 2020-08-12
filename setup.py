@@ -13,8 +13,9 @@ from setuptools import setup
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the relevant file
-with open(path.join(here, 'DESCRIPTION.rst'), encoding='utf-8') as f:
+with open(path.join(here, 'README.rst')) as f:
     long_description = f.read()
+
 
 setup(
     name='FUCHS',
@@ -22,7 +23,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.2.0',
+    version='0.3.0',
 
     description='FUll circular RNA CHaracterization from RNA-Seq',
     long_description=long_description,
@@ -39,7 +40,7 @@ setup(
     maintainer_email='Tobias.Jakobi@med.Uni-Heidelberg.DE',
 
     # Choose your license
-    license='GNU General Public License (GPL)',
+    license='License :: OSI Approved :: GNU General Public License (GPL)',
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
@@ -56,21 +57,26 @@ setup(
         'Development Status :: 4 - Beta',
 
         # Indicate who your project is intended for
-        'Intended Audience :: Researchers',
-        'Topic :: Software Development :: Build Tools',
+        'Intended Audience :: Science/Research',
+        'Topic :: Scientific/Engineering :: Bio-Informatics',
 
         # Pick your license as you wish (should match "license" above)
-        'License :: GNU General Public License (GPL) 3.0',
+        'License :: OSI Approved :: GNU General Public License (GPL)',
 
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
         # 'Programming Language :: Python :: 2',
         # 'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
+        # 'Programming Language :: Python :: 2.7',
         # 'Programming Language :: Python :: 3',
         # 'Programming Language :: Python :: 3.2',
         # 'Programming Language :: Python :: 3.3',
         # 'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+
     ],
 
     # What does your project relate to?
@@ -131,5 +137,11 @@ setup(
         'scripts/summarized_coverage_profiles.R',
         'scripts/make_coverage_picture.R',
         'scripts/guided_denovo_circle_structure_parallel'
-    ]
+    ],
+    project_urls={  # Optional
+        'Bug Reports': 'https://github.com/dieterich-lab/FUCHS/issues',
+        'Dieterich Lab': 'https://dieterichlab.org',
+        'Source': 'https://github.com/dieterich-lab/FUCHS',
+        'Documentation': 'http://docs.circ.tools'
+},
 )

@@ -1,4 +1,4 @@
-#! /usr/bin/env python2
+#! /usr/bin/env python3
 
 
 # python script to get circRNA and host gene fasta into one fasta file
@@ -136,7 +136,7 @@ def write_outfiles(outfile, circRNAs, genes, genes_fasta):
             O = open('%s/%s.fa' % (outfile, gene), 'w')
             for circle in circRNAs[gene]:
                 O.write('>%s_%s_%s_%s\n' % (
-                circle[0], circle[1], circRNAs[gene][circle]['score'], circRNAs[gene][circle]['strand']))
+                    circle[0], circle[1], circRNAs[gene][circle]['score'], circRNAs[gene][circle]['strand']))
                 if circRNAs[gene][circle]['strand'] == '-':
                     O.write('%s\n' % (reverse_complement(circRNAs[gene][circle]['sequence'])))
                 else:
@@ -145,13 +145,13 @@ def write_outfiles(outfile, circRNAs, genes, genes_fasta):
                 for transcript in genes[gene]:
                     if transcript in genes_fasta:
                         O.write('>%s_%s\n%s\n' % (
-                        transcript, genes_fasta[transcript]['strand'], genes_fasta[transcript]['sequence']))
+                            transcript, genes_fasta[transcript]['strand'], genes_fasta[transcript]['sequence']))
             O.close()
         else:
             for circle in circRNAs[gene]:
                 O = open('%s/%s.fa' % (outfile, circle[0]), 'w')
                 O.write('>%s_%s_%s_%s\n' % (
-                circle[0], circle[1], circRNAs[gene][circle]['score'], circRNAs[gene][circle]['strand']))
+                    circle[0], circle[1], circRNAs[gene][circle]['score'], circRNAs[gene][circle]['strand']))
                 if circRNAs[gene][circle]['strand'] == '-':
                     O.write('%s\n' % (reverse_complement(circRNAs[gene][circle]['sequence'])))
                 else:

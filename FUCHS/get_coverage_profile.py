@@ -1,6 +1,3 @@
-#! /usr/bin/env python2
-
-
 # python script to get coverage profile for circle
 # include some checks to make sure input was provided correctly
 
@@ -50,7 +47,7 @@ class get_coverage_profile(object):
         for hit in y:
 
             if len(str(hit).split("\t")) < 19:
-                print("Malformed BED line: " + str(hit))
+                print(("Malformed BED line: " + str(hit)))
                 continue
 
             found_features += [hit[15]]
@@ -104,7 +101,7 @@ class get_coverage_profile(object):
                         num_minus = exon_count[transcript][exon]['strand_read'].count('-')
                         unique_reads = set([w.split('/')[0] for w in exon_count[transcript][exon]['reads']])
                         out.write('%s\t%s:%s-%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % (
-                            sample, circle_id[0], circle_id[1], circle_id[2], transcript, ','.join(exon_count.keys()),
+                            sample, circle_id[0], circle_id[1], circle_id[2], transcript, ','.join(list(exon_count.keys())),
                             exon,
                             exon_count[transcript][exon]['chromosome'], exon_count[transcript][exon]['start'],
                             exon_count[transcript][exon]['end'], exon_count[transcript][exon]['strand_feature'],
@@ -112,7 +109,7 @@ class get_coverage_profile(object):
                             len(exon_count[transcript][exon]['reads']), num_plus, num_minus))
                     else:
                         out.write('%s\t%s:%s-%s\t%s\t%s\t%s\t0\t0\t0\t0\t0\t0\t0\t0\t0\n' % (
-                            sample, circle_id[0], circle_id[1], circle_id[2], transcript, ','.join(exon_count.keys()),
+                            sample, circle_id[0], circle_id[1], circle_id[2], transcript, ','.join(list(exon_count.keys())),
                             exon))
         return
 
@@ -129,22 +126,32 @@ class get_coverage_profile(object):
         """
         """
         if len(exon_counts) > 0:
-            transcript = exon_counts.keys()[0]
+            transcript = list(exon_counts.keys())[0]
             missing_exons_transcript = 100
+            max_length_transcript = 0
             for t in exon_counts:
                 missing_exons = 0
+                max_length = 0
                 for e in range(min(exon_counts[t]), max(exon_counts[t]) + 1):
                     if not e in exon_counts[t]:
                         missing_exons += 1
+                    else:
+                        max_length += len(exon_counts[t][e]['strand_read'])
                 if len(exon_counts[t]) > len(exon_counts[transcript]):
                     transcript = t
                     missing_exons_transcript = missing_exons
+                    max_length_transcript = max_length
                 elif missing_exons < missing_exons_transcript:
                     transcript = t
                     missing_exons_transcript = missing_exons
+                    max_length_transcript = max_length
+                elif max_length_transcript < max_length:
+                    transcript = t
+                    max_length_transcript = max_length
                 elif 'NR' in transcript and 'NM' in t:
                     transcript = t
                     missing_exons_transcript = missing_exons
+                    max_length_transcript = max_length
         else:
             transcript = ''
         return transcript

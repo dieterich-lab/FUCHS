@@ -1,9 +1,9 @@
-#! /usr/bin/env python2
+#! /usr/bin/env python3
 
 # main script to run FUCHS
 
 
-def main():
+def main(circtools_parser=None):
     # required packages
     import os
     import argparse
@@ -59,6 +59,9 @@ def main():
     parser.add_argument('-P', '--cpus', dest='num_cpus', default=4, type=int,
                         help='Number of CPUs used.')
 
+    if circtools_parser:
+        parser = circtools_parser
+
     args = parser.parse_args()
 
     # parse arguments
@@ -82,7 +85,7 @@ def main():
     tmp_folder = os.path.expanduser(args.tmp_folder) + '/'
 
     # start writing down FUCHS time for retracing
-    print('Started FUCHS at %s' % (datetime.datetime.now()))
+    print(('Started FUCHS at %s' % (datetime.datetime.now())))
     dt = str(datetime.datetime.now())
     start_time = time.time()
     # make log file
@@ -108,63 +111,65 @@ def main():
     working_dir = os.getcwd()
     if not circles == 'none' and not os.path.isabs(circles):
         circles = os.path.abspath(os.path.join(os.getcwd(), circles))
-        print('changed circID file to %s\n' % (circles))
+        print(('changed circID file to %s\n' % (circles)))
     if not circles == 'none' and not os.path.exists(circles):
-        print('ERROR, no such file or directory: %s' % (circles))
+        print(('ERROR, no such file or directory: %s' % (circles)))
         quit()
 
     if not circle_ids == 'none' and not os.path.isabs(circle_ids):
         circle_ids = os.path.abspath(os.path.join(os.getcwd(), circle_ids))
-        print('changed CircRNACount file to %s\n' % (circle_ids))
+        print(('changed CircRNACount file to %s\n' % (circle_ids)))
     if not circle_ids == 'none' and not os.path.exists(circle_ids):
-        print('ERROR, no such file or directory: %s' % (circle_ids))
+        print(('ERROR, no such file or directory: %s' % (circle_ids)))
         quit()
 
     if not paired == 'none' and not os.path.isabs(paired):
         paired = os.path.abspath(os.path.join(os.getcwd(), paired))
-        print('changed Chimeric.junction.out file to %s\n' % (paired))
+        print(('changed Chimeric.junction.out file to %s\n' % (paired)))
     if not paired == 'none' and not os.path.exists(paired):
-        print('ERROR, no such file or directory: %s' % (paired))
+        print(('ERROR, no such file or directory: %s' % (paired)))
         quit()
 
     if not mate2 == 'none' and not os.path.isabs(mate2):
         mate2 = os.path.abspath(os.path.join(os.getcwd(), mate2))
-        print('changed mate2.Chimeric.junction.out file to %s\n' % (mate2))
+        print(('changed mate2.Chimeric.junction.out file to %s\n' % (mate2)))
     if not mate2 == 'none' and not os.path.exists(mate2):
-        print('ERROR, no such file or directory: %s' % (mate2))
+        print(('ERROR, no such file or directory: %s' % (mate2)))
         quit()
 
     if not mate1 == 'none' and not os.path.isabs(mate1):
         mate1 = os.path.abspath(os.path.join(os.getcwd(), mate1))
-        print('changed mate1.Chimeric.junction.out file to %s\n' % (mate1))
+        print(('changed mate1.Chimeric.junction.out file to %s\n' % (mate1)))
     if not mate1 == 'none' and not os.path.exists(mate1):
-        print('ERROR, no such file or directory: %s' % (mate1))
+        print(('ERROR, no such file or directory: %s' % (mate1)))
         quit()
 
     if not os.path.isabs(bamfile):
         bamfile = os.path.abspath(os.path.join(os.getcwd(), bamfile))
-        print('changed bamfile file to %s\n' % (bamfile))
+        print(('changed bamfile file to %s\n' % (bamfile)))
     if not os.path.exists(bamfile):
-        print('ERROR, no such file or directory: %s' % (bamfile))
+        print(('ERROR, no such file or directory: %s' % (bamfile)))
         quit()
 
     if not os.path.isabs(outfolder):
-        outfolder = os.path.abspath(os.path.join(os.getcwd(), outfolder)) + "/"
-        print('changed output folder to %s\n' % (outfolder))
+        outfolder = os.path.abspath(os.path.join(os.getcwd(), outfolder))+"/"
+        print(('changed output folder to %s\n' % (outfolder)))
+
     if not os.path.isdir(outfolder):
         os.mkdir(outfolder)
 
     if not os.path.isabs(tmp_folder):
-        tmp_folder = os.path.abspath(os.path.join(os.getcwd(), tmp_folder)) + "/"
-        print('changed tmp folder to %s\n' % (tmp_folder))
+        tmp_folder = os.path.abspath(os.path.join(os.getcwd(), tmp_folder))
+        print(('changed tmp folder to %s\n' % (tmp_folder)))
+
     if not os.path.isdir(tmp_folder):
         os.mkdir(tmp_folder)
 
     if not os.path.isabs(bedfile):
         bedfile = os.path.abspath(os.path.join(os.getcwd(), bedfile))
-        print('changed bedfile file to %s\n' % (bedfile))
+        print(('changed bedfile file to %s\n' % (bedfile)))
     if not os.path.exists(bedfile):
-        print('ERROR, no such file or directory: %s' % (bedfile))
+        print(('ERROR, no such file or directory: %s' % (bedfile)))
         quit()
 
     accepted_platforms = ('refseq', 'ensembl')
@@ -173,7 +178,7 @@ def main():
         print('ERROR please specify an accepted annotation platform. Possible options are: refseq or ensembl')
         quit()
 
-    print "The following analysis steps will be skipped: " + '%s' % ', '.join(map(str, skipped_steps))
+    print("The following analysis steps will be skipped: " + '%s' % ', '.join(map(str, skipped_steps)))
 
     # Step 1: (optional) if DCC was used, extract circle read names from junction file    
     output_file = open('%s/%s.logfile.%s' % (outfolder, sample, dt.replace(' ', '_')), 'w')
@@ -184,7 +189,7 @@ def main():
 
         circles = "%s.reads.txt" % paired
         if not os.path.isfile(circles):
-            import get_readnames_from_DCC as get_readnames
+            from . import get_readnames_from_DCC as get_readnames
             names = get_readnames.get_readnames_from_DCC(circle_ids, paired, mate1, mate2)
             names.run()
         else:
@@ -197,7 +202,7 @@ def main():
     output_file.write('\tfinished\n\n%s: starting to extract chimeric reads from bamfile\n' % (datetime.datetime.now()))
     output_file.close()
     if not 'step2' in skipped_steps:
-        import extract_reads as extract_reads
+        from . import extract_reads as extract_reads
         er = extract_reads.extract_reads(cutoff_reads, cutoff_mapq, circles, bamfile, outfolder, sample, tmp_folder,
                                          num_cpus)
         er.run()
@@ -209,7 +214,7 @@ def main():
     if not 'step3' in skipped_steps:
 
         if not os.path.isfile('%s/%s.mate_status.txt' % (outfolder, sample)):
-            import get_mate_information as mateinformation
+            from . import get_mate_information as mateinformation
             mi = mateinformation.mate_information(platform, split_character, bedfile, outfolder, sample, tmp_folder,
                                                   num_cpus)
             mi.run()
@@ -226,7 +231,7 @@ def main():
     if not 'step4' in skipped_steps:
 
         if not os.path.isfile('%s/%s.skipped_exons.bed' % (outfolder, sample)):
-            import detect_skipped_exons as skipped_exons
+            from . import detect_skipped_exons as skipped_exons
             se = skipped_exons.detect_skipped_exons(outfolder, sample, bedfile, tmp_folder, platform, num_cpus)
             se.run()
         else:
@@ -242,7 +247,7 @@ def main():
     if not 'step5' in skipped_steps:
 
         if not os.path.isfile('%s/%s.alternative_splicing.txt' % (outfolder, sample)):
-            import detect_splicing_variants as splicing_variants
+            from . import detect_splicing_variants as splicing_variants
             sv = splicing_variants.detect_splicing_variants(split_character, platform, circles, bedfile,
                                                             outfolder, sample, tmp_folder, num_cpus)
             sv.run()
@@ -261,7 +266,7 @@ def main():
     if not 'step6' in skipped_steps:
         if not os.path.isfile('%s/%s.exon_counts.bed' % (outfolder, sample)) and not os.path.isdir(
                         '%s/%s.coverage_profiles/' % (outfolder, sample)):
-            import get_coverage_profile as coverage_profile
+            from . import get_coverage_profile as coverage_profile
             sv = coverage_profile.get_coverage_profile(exon_index, split_character, platform, bedfile,
                                                        outfolder, sample, tmp_folder, num_cpus)
             sv.run()

@@ -1,4 +1,4 @@
-#! /usr/bin/env python2
+#! /usr/bin/env python3
 
 
 # define functions
@@ -24,12 +24,12 @@ def filter_reads(reads, coordinates):
     for lola in reads:
         if len(reads[lola]) > 1:
             occurences = reads[lola]
-            KEYS = occurences.keys()
+            KEYS = list(occurences.keys())
             mapq = occurences[KEYS[0]]['mapq']
             for forrest in KEYS:
                 if not occurences[forrest]['reference'] == coordinates[0]:
                     del occurences[forrest]
-            KEYS = occurences.keys()
+            KEYS = list(occurences.keys())
             for forrest in KEYS:
                 if occurences[forrest]['mapq'] > mapq:
                     mapq = occurences[forrest]['mapq']
@@ -69,13 +69,13 @@ def connect_introns(introns, circ_coordinates):
             st = sorted(transcripts)
             for t in st:
                 ti = max(transcripts) + 1
-                if not (transcripts[t][:-1] + [i]) in transcripts.values():
+                if not (transcripts[t][:-1] + [i]) in list(transcripts.values()):
                     transcripts[ti] = transcripts[t][:-1] + [i]
     for t in transcripts:
         transcripts[t] += [(circ_coordinates[0], circ_coordinates[2] + 1, circ_coordinates[2] + 2)]
     tmp = {}
-    for key, value in transcripts.items():
-        if value not in tmp.values():
+    for key, value in list(transcripts.items()):
+        if value not in list(tmp.values()):
             tmp[key] = value
     transcripts = tmp
     return (transcripts)
@@ -206,7 +206,7 @@ def merge_exons(exons):
                 next_exon = sorted_exons[i + 1]
                 if e[2] + 1 >= next_exon[1]:
                     new_exons[(e[0], e[1], next_exon[2])] = ((exons[e] * (e[2] - e[1])) + (
-                        exons[next_exon] * (next_exon[2] - next_exon[1]))) / float(next_exon[2] - e[1])
+                            exons[next_exon] * (next_exon[2] - next_exon[1]))) / float(next_exon[2] - e[1])
                     merged = [e, next_exon]
                 else:
                     new_exons[e] = exons[e]
@@ -214,7 +214,7 @@ def merge_exons(exons):
                 prev_exon = sorted_exons[i - 1]
                 if e[1] - 1 <= prev_exon[2]:
                     new_exons[(e[0], prev_exon[1], e[2])] = ((exons[e] * (e[2] - e[1])) + (
-                        exons[prev_exon] * (prev_exon[2] - prev_exon[1]))) / float(e[2] - prev_exon[1])
+                            exons[prev_exon] * (prev_exon[2] - prev_exon[1]))) / float(e[2] - prev_exon[1])
                     merged = [e, prev_exon]
                 else:
                     new_exons[e] = exons[e]
@@ -254,7 +254,6 @@ def write_bed12(outfile, transcript_coverage, circ_coordinates, coverage, intron
             if e_length < (circ_coordinates[2] - circ_coordinates[1]) \
                     and 0 < e_location < (
                     circ_coordinates[2] - circ_coordinates[1]):
-
                 exon_length += ['%s' % e_length]
                 exon_location += ['%s' % e_location]
 
@@ -303,8 +302,8 @@ def write_single_exon(outfile, coverage, circ_coordinates, annotation):
         breakpoints = (
             circ_coordinates[1] + coverage.index(0), circ_coordinates[2] - (list(reversed(coverage)).index(0)))
         if circ_coordinates[2] == breakpoints[1] or len(coverage) == 0 or float(coverage.index(0)) == 0:
-		return
-	exon1 = (circ_coordinates[0], circ_coordinates[1], breakpoints[0])
+            return
+        exon1 = (circ_coordinates[0], circ_coordinates[1], breakpoints[0])
         exon2 = (circ_coordinates[0], breakpoints[1], circ_coordinates[2])
         O12.write('%s\t%s\t%s\t%s:%s-%s|0|%s\t%s\t.\t%s\t%s\t255,0,0\t2\t%s,%s\t0,%s\n' % (
             circ_coordinates[0], circ_coordinates[1], circ_coordinates[2], circ_coordinates[0], circ_coordinates[1],
@@ -313,7 +312,7 @@ def write_single_exon(outfile, coverage, circ_coordinates, annotation):
                 coverage[breakpoints[1] - circ_coordinates[1]:]) / float(circ_coordinates[2] - breakpoints[1])) / 2),
             circ_coordinates[1], circ_coordinates[2], coverage.index(0), circ_coordinates[2] - breakpoints[1],
             breakpoints[1] - circ_coordinates[1]))
-	O6.write('%s\t%s\t%s\t%s:%s-%s|0|0\t%s\t.\n' % (
+        O6.write('%s\t%s\t%s\t%s:%s-%s|0|0\t%s\t.\n' % (
             exon1[0], exon1[1], exon1[2], circ_coordinates[0], circ_coordinates[1], circ_coordinates[2],
             int(sum(coverage[:coverage.index(0)]) / float(coverage.index(0)))))
         O6.write('%s\t%s\t%s\t%s:%s-%s|1|0\t%s\t.\n' % (
@@ -329,7 +328,7 @@ def write_single_exon(outfile, coverage, circ_coordinates, annotation):
             circ_coordinates[0], circ_coordinates[1], circ_coordinates[2], circ_coordinates[0], circ_coordinates[1],
             circ_coordinates[2], int(sum(coverage) / float(len(coverage)))))
     else:
-        print('no reads for circle %s:%s-%s' % (circ_coordinates[0], circ_coordinates[1], circ_coordinates[2]))
+        print(('no reads for circle %s:%s-%s' % (circ_coordinates[0], circ_coordinates[1], circ_coordinates[2])))
     O6.close()
     O12.close()
     return
@@ -368,17 +367,17 @@ def run_denovo_exon_chain_reconstruction(f, folder, annotation, outfile):
             elif sum(Cov) > 0:
                 breakpoints = (circ_coordinates[1] + Cov.index(0), circ_coordinates[2] - (list(reversed(Cov)).index(0)))
 
-                #print(breakpoints)
-                #print(breakpoints[1])
+                # print(breakpoints)
+                # print(breakpoints[1])
                 #
-                print(circ_coordinates[2])
+                print((circ_coordinates[2]))
                 #
-                #print(float(circ_coordinates[2] - breakpoints[1]))
+                # print(float(circ_coordinates[2] - breakpoints[1]))
 
                 if circ_coordinates[2] == breakpoints[1] or Cov.index(0) == 0:
                     return f, len(Introns)
-                #print(float(Cov.index(0)))
-                #print(float(circ_coordinates[2] - breakpoints[1]))
+                # print(float(Cov.index(0)))
+                # print(float(circ_coordinates[2] - breakpoints[1]))
 
                 TC = {
                     0: {'introns': Introns, 'coverage_breaks': [(circ_coordinates[0], breakpoints[0], breakpoints[1])],
@@ -395,7 +394,7 @@ def run_denovo_exon_chain_reconstruction(f, folder, annotation, outfile):
                     write_bed12('%s12.bed' % (outfile), TC, circ_coordinates, Cov, Introns)
                     write_bed6(TC, '%s6.bed' % (outfile), circ_coordinates, Cov)
             else:
-                print('no reads mapped for %s' % f)
+                print(('no reads mapped for %s' % f))
 
     return f, len(Introns)
 
@@ -444,15 +443,15 @@ if __name__ == '__main__':
 
     if not os.path.isabs(tmp_folder):
         tmp_folder = os.path.abspath(os.path.join(working_dir, tmp_folder))
-        print('changed tmp folder to %s\n' % (tmp_folder))
+        print(('changed tmp folder to %s\n' % (tmp_folder)))
     if not os.path.isdir(tmp_folder):
         os.mkdir(tmp_folder)
 
     if not os.path.isabs(infolder):
         infolder = os.path.abspath(os.path.join(working_dir, infolder))
-        print('changed inputfolder folder to %s\n' % (infolder))
+        print(('changed inputfolder folder to %s\n' % (infolder)))
     if not os.path.isdir(infolder):
-        print('ERROR, no such file or directory: %s' % (infolder))
+        print(('ERROR, no such file or directory: %s' % (infolder)))
         quit()
 
     # set temp folder. foldr needs to exist!
@@ -462,9 +461,9 @@ if __name__ == '__main__':
     folder = '%s/%s/' % (infolder, sample)
     if not os.path.isabs(folder):
         folder = os.path.abspath(os.path.join(working_dir, folder))
-        print('changed inputfolder folder to %s\n' % (folder))
+        print(('changed inputfolder folder to %s\n' % (folder)))
     if not os.path.isdir(folder):
-        print('ERROR, no such file or directory: %s' % (folder))
+        print(('ERROR, no such file or directory: %s' % (folder)))
         quit()
 
     outfile = '%s/%s_exon_chain_' % (infolder, sample)
@@ -498,8 +497,8 @@ if __name__ == '__main__':
         if f.split('.')[-1] == 'bam':
             tasks.append((f, folder, annotation_file, outfile))
 
-    print(len(files))
-    print("Processing %d circRNAs using %d processors..." % (len(tasks), num_cpus))
+    print((len(files)))
+    print(("Processing %d circRNAs using %d processors..." % (len(tasks), num_cpus)))
 
     # Run tasks
     results = [pool.apply_async(run_denovo_exon_chain_reconstruction, t) for t in tasks]
@@ -507,9 +506,9 @@ if __name__ == '__main__':
     # Process results
     for result in results:
         (filename, introns) = result.get()
-        print("Result: circRNA %s has %s introns" % (filename, introns))
+        print(("Result: circRNA %s has %s introns" % (filename, introns)))
 
     pool.close()
     pool.join()
     pybedtools.helpers.cleanup()
-    print("guided_denovo took --- %s minutes ---\n\n" % (round((time.time() - start_time) / 60.0)))
+    print(("guided_denovo took --- %s minutes ---\n\n" % (round((time.time() - start_time) / 60.0))))

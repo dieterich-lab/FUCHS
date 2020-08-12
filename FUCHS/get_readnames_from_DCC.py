@@ -1,5 +1,4 @@
-#! /usr/bin/env python2
-
+from functools import reduce
 
 # python script to use CircRNACount file and Chimeric.out.junction
 # of mate1/2 to extract read names of circle spanning reads
@@ -62,13 +61,13 @@ class get_readnames_from_DCC(object):
 
     def filter_reads_by_mate(self, reads, is_paired):
         unique_reads = {}
-        for circ in reads.keys():
+        for circ in list(reads.keys()):
             unique_reads[circ] = []
-            all_reads = list(set(reduce(lambda x, y: x + y, reads[circ].values(), [])))
+            all_reads = list(set(reduce(lambda x, y: x + y, list(reads[circ].values()), [])))
             if is_paired:
                 for read in all_reads:
                     if read in reads[circ]['paired'] and read in reads[circ]['mate1'] and read in reads[circ]['mate2']:
-                        print('false positive read %s in %s' % (read, circ))
+                        print(('false positive read %s in %s' % (read, circ)))
                     else:
                         unique_reads[circ] += [read]
             else:
