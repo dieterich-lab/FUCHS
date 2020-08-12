@@ -1,6 +1,7 @@
-########################################################
+********************************************************
 FUCHS - FUll circular RNA CHaracterization from RNA-Seq
-########################################################
+********************************************************
+
 FUCHS is a python pipeline designed to fully characterize circular RNAs. It uses a list of circular RNAs and reads spanning the back-splice junction as well
 as a BAM file containing the mapping of all reads (alternatively of all chimeric reads).
 
@@ -294,19 +295,19 @@ Output produced by FUCHS
 
 This file summarizes the relationship of different circRNAs derived from the same host-gene.
 
-=============  ============================================================    =========================================  =========   ===========  =============================================
-Transcript      circles                                                        same_start                                 same_end    overlapping  within
-=============  ============================================================    =========================================  =========   ===========  =============================================
-NM_016287	1:20749723-20773610                                            .                                           .          .            .
-NM_005095	1:35358925-35361789,1:35381259-35389082,1:35381259-35390098    1:35381259-35389082|1:35381259-35390098,    .          .            .
-NM_001291940    1:236803428-236838599,1:236806144-236816543                    .                                           .          .            1:236803428-236838599|1:236806144-236816543,
-=============  ============================================================    =========================================  =========   ===========  =============================================
+=============  =============================================================    =========================================  =========   ============  =============================================
+Transcript      circles                                                         same_start                                 same_end    overlapping   within
+=============  =============================================================    =========================================  =========   ============  =============================================
+NM_016287	1:20749723-20773610                                             .                                           .          .             .
+NM_005095	1:35358925-35361789,1:35381259-35389082,1:35381259-35390098     1:35381259-35389082|1:35381259-35390098,    .          .             .
+NM_001291940    1:236803428-236838599,1:236806144-236816543                     .                                           .          .             1:236803428-236838599|1:236806144-236816543,
+=============  =============================================================    =========================================  =========   ============  =============================================
 
 | *Transcript*: Transcript name as defined by the bed-annotation file
 | *circles*: Comma-separated list of circRNA ids derived from this transcript
-| *same_start*: Comma-seprated list of circRNA pairs separated by |. Pairs in this column share the same start coordinates. A "." indicates that there are no circle pairs that share the same start coordinates.
+| *same_start*: Comma-seprated list of circRNA pairs separated by \|. Pairs in this column share the same start coordinates. A "." indicates that there are no circle pairs that share the same start coordinates.
 | *same_end*: Same as *same_start*, only now, circle pairs share the same end coordinates.
-| *overlapping*: Comma-seprated list of circRNA pairs separated by |. Pairs in this column share neither start nor end coordinates, but their relation is such that: start.x < start.y && end.x < end.y && start.y < end.x
+| *overlapping*: Comma-seprated list of circRNA pairs separated by \|. Pairs in this column share neither start nor end coordinates, but their relation is such that: start.x < start.y && end.x < end.y && start.y < end.x
 | *within*: Same as *overlapping*, only now, circle pairs have the follwoing relation: start.x < start.y && end.x > end.y
 |
 
@@ -321,8 +322,8 @@ chr1    20749723        20773610        NM_016287       4               \-      
 =====  ============  =============    ============    =============    =======   ======== =========  ======= ===========  ==============  =====================
 
 | *Chr*: Chromosome of circRNA
-| *Circle Start*: The 5' site of the chimeric junction. This is relative to the reference strand, i.e. start < end! The location is 1-index based
-| *Cirlce End*: The 3' site of the chimeric junction. This is relative to the reference strand, i.e. start < end! The location is 0-index based
+| *Circle Start*: The 5' site of the chimeric junction. This is relative to the reference strand, i.e. start \< end! The location is 1-index based
+| *Cirlce End*: The 3' site of the chimeric junction. This is relative to the reference strand, i.e. start \< end! The location is 0-index based
 | *Transcript*: Transcript name as defined by the bed-annotation file
 | *Num of Reads* : Number of reads supporting this chimeric junction, in other words, reads that are chimerically mapped to this junction
 | *Strand*: Strand of the host-gene
@@ -332,7 +333,7 @@ chr1    20749723        20773610        NM_016287       4               \-      
 | *Num of Exon*: Number of exons in this circRNA consists of
 | *Exon Lengths*: Comma-seprated list of the length of each exon
 | *Relative Exon Starts*: Comma-separated list of the relative starting positions of the exons within the circle boundaries.
-|
+
 **hek293.exon_counts.txt:**
 This file contains similar information as the previous file, just more detailed inforamtion on the exons. Each line corresponds to one exon.
 
