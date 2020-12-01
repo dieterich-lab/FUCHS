@@ -115,7 +115,8 @@ def get_coverage_profile(bamfile, circ_coordinates, transcripts):
         else:
             transcript_coverage[t]['coverage_breaks'] = []
         for i, intron in enumerate(transcripts[t]):
-            if i > 0 and (i + 1) < len(transcripts[t]):
+            if i > 0 and (i + 1) < len(transcripts[t]) and (
+                    intron[2] - intron[1]) > 0:
                 transcript_coverage[t]['introns'][intron] = sum(
                     coverage[intron[1] - circ_coordinates[1]:intron[2] -
                                                              circ_coordinates[
