@@ -94,7 +94,7 @@ setup(
         'pysam>=0.9.0',
         'pybedtools>=0.7.8',
         'pathos>=0.2.1',
-        'numpy<1.17.0'
+        'numpy>=1.17.0'
     ],
 
     # List additional groups of dependencies here (e.g. development
